@@ -1,3 +1,4 @@
+"use server";
 import axios from "axios";
 import ProdConfig from "../config/prod_config";
 
@@ -25,13 +26,15 @@ class LoginService {
     });
 
     let reqOptions = {
-      url: `${this._environment.API_URL}/login`,
-      method: "POST",
+      // url: `${this._environment.API_URL}/login`,
+      url: `https://jsonplaceholder.typicode.com/todos`,
+      method: "GET",
       headers: headersList,
       data: bodyContent
     };
 
 		let response = await axios.request(reqOptions);
+    console.log(response);
 		return response;
   }
 }
