@@ -1,8 +1,6 @@
 "use client";
 import React, { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import LoginService from "@/app/api/services/login.Service";
-import teste from "@/actions/get-provideres";
 import { loginUser } from "@/actions/user-login";
 // import { Loader } from "rsuite";
 
@@ -77,6 +75,7 @@ const LoginPage = () => {
                 // onChange={(event) => handleOnLogin(event, "email")}
                 className="container--login_input"
                 placeholder="Email"
+                required
               />
               <label htmlFor="password"></label>
               <input
@@ -86,6 +85,7 @@ const LoginPage = () => {
                 // onChange={(event) => handleOnLogin(event, "password")}
                 className="container--login_input"
                 placeholder="Password"
+                required
               />
             </div>
             <button disabled={isPeding} className="btnLogin">

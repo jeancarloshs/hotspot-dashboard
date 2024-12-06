@@ -9,9 +9,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1d0435;
+    /* --background: #1d0435; */
+    --background: #111827;
     --foreground: #ededed;
-    --bgContainerLogin: #44444444;
+    /* --bgContainerLogin: #44444444; */
+    --bgContainerLogin: #1F2937;
+    --btnColor: #2563EB;
+    --btnColorHover: #1e3a8a;
+    --btnColorFocus: #152961;
   }
 }
 
@@ -37,6 +42,7 @@ body {
   height: 550px;
   background: var(--bgContainerLogin);
   border-radius: 20px;
+  border: 1px solid #374151;
   /* margin: 0 auto; */
 }
 
@@ -80,11 +86,12 @@ body {
 .container--login_input {
   width: 450px;
   height: 40px;
-  color: #111827;
+  color: #fff;
+  background-color: #374151;
   margin-bottom: 20px;
   padding-left: 10px;
   transition: background-color 0.3s ease;
-  border-radius: 5px;
+  border-radius: 8px;
   /* outline: none !important; */
 }
 
@@ -100,16 +107,16 @@ body {
 .btnLogin {
   width: 450px;
   height: 40px;
-  background-color: #171717;
-  border-radius: 5px;
+  background-color: var(--btnColor);
+  border-radius: 8px;
   transition: background-color 0.3s ease;
 }
 
 .btnLogin:hover {
-  background-color: #333333;
+  background-color: var(--btnColorHover);
 }
 
 .btnLogin:focus {
   outline: none;
-  box-shadow: 0 0 5px 2px #666666;
+  box-shadow: 0 0 5px 2px var(--btnColorFocus);
 }
