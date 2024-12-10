@@ -1,11 +1,15 @@
 "use client";
 import React, { useActionState, useEffect, useState } from "react";
+// import { cookies } from 'next/headers';
+// import { NextResponse } from 'next/server';
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/actions/user-login";
 // import { Loader } from "rsuite";
 
 const LoginPage = () => {
   const router = useRouter();
+
+  // const response = NextResponse.next();
   // const [result, handleLoginUser, isPeding] = useActionState(loginUser, null);
   const [isPeding, setIsPeding] = useState(false);
   const [formLogin, setFormLogin] = useState({
@@ -14,7 +18,7 @@ const LoginPage = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,9 +27,13 @@ const LoginPage = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 3000))
       setIsPeding(false)
-      const result = await loginUser(formData);
-      console.log("result", result)
-    } catch (error) {
+      const dataLogin = await loginUser(formData);
+      router.push("./home")
+      // console.log("result", dataLogin)
+    } catch (error: any) {
+      if (error.message.match("401")) {
+        return alert("Usuário ou senha inválidos")
+      }
       console.error("Erro ao realizar login", error);
     }
   }

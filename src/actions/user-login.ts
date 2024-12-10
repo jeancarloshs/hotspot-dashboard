@@ -2,10 +2,12 @@
 
 import axios from "axios";
 import ProdConfig from "@/app/api/config/prod_config";
+import { cookies } from 'next/headers';
 
 export async function loginUser(data: FormData | null): Promise<any> {
   const environment = new ProdConfig();
-
+  const cookieStore = await cookies();
+  console.log(data)
   if (!data) {
     throw new Error("Os dados enviados são inválidos.");
   }
@@ -34,6 +36,22 @@ export async function loginUser(data: FormData | null): Promise<any> {
     data: bodyContent,
   };
 
-  const response = await axios.request(reqOptions);
-  return response.data;
+
+  try {
+    const response = await axios.request(reqOptions);
+    // console.log(response.data)
+
+    if (response.status === 200) {
+      cookieStore.set("token", response.data.objAuth.token, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60,
+      });
+    }
+
+    return response.data;
+  } catch (error: any) {
+    if (error.response.status === 401) {
+      throw new Error("Usuário ou senha inválidos.");
+    }
+  }
 }
