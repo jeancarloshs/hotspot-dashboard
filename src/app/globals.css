@@ -6,7 +6,7 @@
   --background: #F8FAFB;
   --foreground: #171717;
   --bgContainerLogin: #FFFFFF;
-  --btnColor: #2563EB;
+  --btnColor: #2589F5;
   --btnColorHover: #1e40af;
   --btnColorFocus: #1d4ed8;
   --inputColor: #FFFFFF;
@@ -137,3 +137,27 @@ body {
   outline: none;
   box-shadow: 0 0 5px var(--btnColorFocus);
 }
+
+.sidebarComponent {
+  height: 100vh;
+  background-color: #F4F5F7;
+}
+
+.siderbarComponent--nav_container {
+  margin-top: 40px
+}
+
+/* .content--container {
+  width: 100vw;
+  height: 100vh;
+  background-color: #111827;
+}
+
+.sideBar {
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  height: 100vh;
+  /* ela fechada tem 56px 
+  background-color: red;
+} */
