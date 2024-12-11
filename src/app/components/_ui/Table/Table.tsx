@@ -21,6 +21,11 @@ interface ITableCProps {
   dataProps: IUser[];
 }
 
+const bytesToMB = (bytes: any) => {
+  let bytesCount = bytes / 1048576;
+  return bytesCount.toFixed(2)
+};
+
 // Exemplo de mock de dados
 const mockUsers = (arrayProps: any): any => {
   return arrayProps.map((item: IServerMK) => ({
@@ -32,7 +37,10 @@ const mockUsers = (arrayProps: any): any => {
     address: item.server!.address!,
     mac_address: item.server!.mac_address!,
     uptime: item.server!.uptime!,
-    hotspot: item.server!.hotspot?.nome
+    hotspot: item.server!.hotspot?.nome,
+    tipo_usuario: item.user[0].tipo_usuario,
+    dados_recebidos: `${bytesToMB(item.server.bytes_in)} MB`,
+    dados_enviados: `${bytesToMB(item.server.bytes_out)} MB`,
   }));
 };
 
@@ -143,6 +151,21 @@ const TableC = ({ dataProps }: ITableCProps) => {
       <Column width={200}>
         <HeaderCell>Hotspot</HeaderCell>
         <Cell dataKey="hotspot" />
+      </Column>
+
+      <Column width={200}>
+        <HeaderCell>Tipo de usuario</HeaderCell>
+        <Cell dataKey="tipo_usuario" />
+      </Column>
+
+      <Column width={200}>
+        <HeaderCell>dados_recebidos</HeaderCell>
+        <Cell dataKey="dados_recebidos" />
+      </Column>
+
+      <Column width={200}>
+        <HeaderCell>dados_enviados</HeaderCell>
+        <Cell dataKey="dados_enviados" />
       </Column>
     </Table>
   );
