@@ -10,6 +10,7 @@ import TableC from "@/app/components/_ui/Table/Table";
 import { Stat, StatGroup } from "rsuite";
 import PeoplesIcon from "@rsuite/icons/Peoples";
 import FunnelStepsIcon from "@rsuite/icons/FunnelSteps";
+import { LineChart } from "@mui/x-charts";
 
 const HomePage = () => {
   const [providers, setProviders] = useState<IUser[]>([]); // Inicializando o estado como um array vazio
@@ -38,71 +39,72 @@ const HomePage = () => {
   console.log(providers);
   return (
     <SideBar>
-      <StatGroup spacing={20} columns={4}>
-        <Stat
-          bordered
-          icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
-        >
-          <Stat.Value>21,000</Stat.Value>
-          <Stat.Label>Total de Clientes</Stat.Label>
-        </Stat>
+      <div className="sidebar--container">
+        <StatGroup spacing={20} columns={4}>
+          <Stat
+            bordered
+            icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
+          >
+            <Stat.Value>21,000</Stat.Value>
+            <Stat.Label>Total de Clientes</Stat.Label>
+          </Stat>
 
-        <Stat
-          bordered
-          icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
-        >
-          <Stat.Value>21,000</Stat.Value>
-          <Stat.Label>Clientes Online</Stat.Label>
-        </Stat>
+          <Stat
+            bordered
+            icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
+          >
+            <Stat.Value>21,000</Stat.Value>
+            <Stat.Label>Clientes Online</Stat.Label>
+          </Stat>
 
-        <Stat
-          bordered
-          icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
-        >
-          <Stat.Value>21,000</Stat.Value>
-          <Stat.Label>Total de Provedores</Stat.Label>
-        </Stat>
+          <Stat
+            bordered
+            icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
+          >
+            <Stat.Value>21,000</Stat.Value>
+            <Stat.Label>Total de Provedores</Stat.Label>
+          </Stat>
 
-        <Stat
-          bordered
-          icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
-        >
-          <Stat.Value>21,000</Stat.Value>
-          <Stat.Label>Total de Hotspots</Stat.Label>
-        </Stat>
-      </StatGroup>
+          <Stat
+            bordered
+            icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
+          >
+            <Stat.Value>21,000</Stat.Value>
+            <Stat.Label>Total de Hotspots</Stat.Label>
+          </Stat>
+        </StatGroup>
 
-      <TableC dataProps={providers} />
-      {/* <div>
-                <h1>Home Page</h1>
-                <ul>
-                    {providers.length > 0 ? (
-                        providers.map((provider: IServer, index: number) => (
-                            <li key={provider.id}>{provider.user![0]!.nome_completo} - {provider.user![0]!.hotspot!.nome} - {provider.address}</li>  // Exibe o nome de cada provedor
-                        ))
-                    ) : (
-                        <p>Carregando provedores...</p>  // Exibe mensagem enquanto os dados estão sendo carregados
-                    )}
-                </ul>
-            </div> */}
+        <div className="container--line-chart">
+          <LineChart
+            className="line-chart"
+            xAxis={[{ data: [1, 2, 3, 5, 8, 10, 11, 12] }]}
+            series={[
+              {
+                data: [2, 5.5, 2, 8.5, 1.5, 5, 10, 11],
+                area: true,
+              },
+            ]}
+            width={500}
+            height={300}
+          />
+
+          <LineChart
+            className="line-chart"
+            xAxis={[{ data: [1, 2, 3, 5, 8, 10, 11, 12] }]}
+            series={[
+              {
+                data: [2, 5.5, 2, 8.5, 1.5, 5, 10, 11],
+                area: true,
+              },
+            ]}
+            width={500}
+            height={300}
+          />
+        </div>
+
+        <TableC dataProps={providers} />
+      </div>
     </SideBar>
-    // <div className="content--container">
-    //     <div className="sideBar">
-
-    //     </div>
-    // </div>
-    // <div>
-    //     <h1>Home Page</h1>
-    //     <ul>
-    //         {providers.length > 0 ? (
-    //             providers.map((provider: IProvider, index: number) => (
-    //                 <li key={provider.id}>{provider.nome}</li>  // Exibe o nome de cada provedor
-    //             ))
-    //         ) : (
-    //             <p>Carregando provedores...</p>  // Exibe mensagem enquanto os dados estão sendo carregados
-    //         )}
-    //     </ul>
-    // </div>
   );
 };
 

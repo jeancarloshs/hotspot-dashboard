@@ -159,12 +159,12 @@ const TableC = ({ dataProps }: ITableCProps) => {
       </Column>
 
       <Column width={200}>
-        <HeaderCell>dados_recebidos</HeaderCell>
+        <HeaderCell>Dados Recebidos</HeaderCell>
         <Cell dataKey="dados_recebidos" />
       </Column>
 
       <Column width={200}>
-        <HeaderCell>dados_enviados</HeaderCell>
+        <HeaderCell>Dados Enviados</HeaderCell>
         <Cell dataKey="dados_enviados" />
       </Column>
     </Table>

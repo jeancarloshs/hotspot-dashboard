@@ -11,18 +11,22 @@
   --btnColorFocus: #1d4ed8;
   --inputColor: #FFFFFF;
   --textColor: #000
+  --sideBarColor: #F4F5F7;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #111827;
     --foreground: #ededed;
+    --backgroudB: #1E2631;
     --bgContainerLogin: #1F2937;
     --btnColor: #2563EB;
     --btnColorHover: #1e3a8a;
     --btnColorFocus: #152961;
+    --borderColor: #374151;
     --inputColor: #374151;
-    --textColor: #fff
+    --textColor: #fff;
+    --sideBarColor: #1E2631;
   }
 
   .container--login_input {
@@ -48,6 +52,7 @@ body {
   align-items: center;
   min-height: 100vh;
   margin: 0;
+  background: var(--backgroudB);
 }
 
 .container--login--section {
@@ -58,7 +63,7 @@ body {
   height: 550px;
   background: var(--bgContainerLogin);
   border-radius: 20px;
-  border: 1px solid #374151;
+  border: 1px solid var(--borderColor);
   /* margin: 0 auto; */
 }
 
@@ -75,10 +80,12 @@ body {
   margin-top: 20px;
   font-weight: bold;
   font-size: 26px;
+  color: var(--textColor);
 }
 
 .container--span {
   margin-bottom: 20px;
+  color: var(--textColor);
 }
 
 .h1--login {
@@ -140,11 +147,30 @@ body {
 
 .sidebarComponent {
   height: 100vh;
-  background-color: #F4F5F7;
+  background-color: var(--sideBarColor);
 }
 
 .siderbarComponent--nav_container {
   margin-top: 40px
+}
+
+.siderbarComponent--nav_container--nav-item {
+  color: white !important;
+}
+
+.sidebar--container {
+  width: 90%;
+  margin: 0 auto;
+}
+
+.container--line-chart {
+  display: flex;
+  flex-wrap: wrap;
+  flex-grow: 1;
+}
+
+.line-chart {
+  width: 90%;
 }
 
 /* .content--container {
@@ -161,3 +187,9 @@ body {
   /* ela fechada tem 56px 
   background-color: red;
 } */
+
+@media (max-width: 1366) {
+  .line-chart {
+    width: 50% !important;
+  }
+}

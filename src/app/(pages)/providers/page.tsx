@@ -4,7 +4,9 @@ import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 
 const ProvidersPage = () => {
   return (
-    <SideBar></SideBar>
+    <SideBar>
+      <h1>provedores</h1>
+    </SideBar>
   )
 }
 
