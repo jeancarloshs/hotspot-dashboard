@@ -34,6 +34,7 @@ const LoginPage = () => {
       if (error.message.match("401")) {
         return alert("Usuário ou senha inválidos")
       }
+      alert(`Erro ao realizar login\n ${error}`);
       console.error("Erro ao realizar login", error);
     }
   }
