@@ -153,12 +153,12 @@ const TableC = ({ dataProps }: ITableCProps) => {
         <Cell dataKey="nome_completo" />
       </Column>
 
-      <Column width={130}>
+      <Column width={120}>
         <HeaderCell>CPF</HeaderCell>
         <Cell dataKey="cpf" />
       </Column>
 
-      <Column width={100}>
+      <Column width={120}>
         <HeaderCell>IP</HeaderCell>
         <Cell dataKey="address" />
       </Column>
@@ -173,22 +173,22 @@ const TableC = ({ dataProps }: ITableCProps) => {
         <Cell dataKey="uptime" />
       </Column>
 
-      <Column width={200}>
+      <Column width={150}>
         <HeaderCell>Hotspot</HeaderCell>
         <Cell dataKey="hotspot" />
       </Column>
 
-      <Column width={150}>
+      <Column width={120}>
         <HeaderCell>Tipo de usuario</HeaderCell>
         <Cell dataKey="tipo_usuario" />
       </Column>
 
-      <Column width={200}>
+      <Column width={120}>
         <HeaderCell>Dados Recebidos</HeaderCell>
         <Cell dataKey="dados_recebidos" />
       </Column>
 
-      <Column width={200}>
+      <Column width={120}>
         <HeaderCell>Dados Enviados</HeaderCell>
         <Cell dataKey="dados_enviados" />
       </Column>
