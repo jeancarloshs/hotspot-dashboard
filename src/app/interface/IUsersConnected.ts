@@ -1,10 +1,10 @@
 export interface IServerMK {
   server: IServer;
-  user: IUser[];
+  user: IUsersConnected[];
 }
 
 export interface IServer {
-  user: IUser[];  // array de usuários, pois você está acessando `user![0]`
+  user: IUsersConnected[];  // array de usuários, pois você está acessando `user![0]`
   id?: string | number;
   server?: string;
   address?: string;
@@ -24,7 +24,7 @@ export interface IServer {
   created_at?: Date;
 }
 
-export interface IUser {
+export interface IUsersConnected {
   id: number;
   nome_completo?: string;
   cpf?: string;
