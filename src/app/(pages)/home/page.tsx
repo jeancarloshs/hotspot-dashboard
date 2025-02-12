@@ -5,7 +5,7 @@ import { getAllProviders } from "@/actions/get-all-provideres";
 import { getAllUsersConnected } from "@/actions/get-all-users-connected";
 import IProvider from "@/app/interface/IProviders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
-import { IServer, IUser } from "@/app/interface/IUsersConnected";
+import { IServer, IUsersConnected } from "@/app/interface/IUsersConnected";
 import TableC from "@/app/components/_ui/Table/Table";
 import { Stat, StatGroup } from "rsuite";
 import PeoplesIcon from "@rsuite/icons/Peoples";
@@ -15,8 +15,8 @@ import { getAllUsers } from "@/actions/get-all-users";
 import { getAllHotspots } from "@/actions/get-all-hotspots";
 
 const HomePage = () => {
-  const [allUsersConnected, setAllUsersConnected] = useState<IUser[]>([]); // Inicializando o estado como um array vazio
-  const [allUseres, setAllUsers] = useState<IUser[]>([])
+  const [allUsersConnected, setAllUsersConnected] = useState<IUsersConnected[]>([]); // Inicializando o estado como um array vazio
+  const [allUseres, setAllUsers] = useState<IUsersConnected[]>([])
   const [allProviders, setAllProviders] = useState<IProvider[]>([]);
   const [allHotspots, setAllHotspots] = useState<any>([]);
 
