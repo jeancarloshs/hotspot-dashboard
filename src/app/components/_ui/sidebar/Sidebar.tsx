@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Container,
   Header,
@@ -32,7 +34,7 @@ interface SideBarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const SideBar = ({ children }: SideBarProps) => {
-  const [expand, setExpand] = useState(true);
+  const [expand, setExpand] = useState<boolean>(true);
   const router = useRouter();
   const handleLogout = async (): Promise<void> => {
     await userLogout();
@@ -40,10 +42,9 @@ const SideBar = ({ children }: SideBarProps) => {
   };
 
   return (
-    <Container>
+    <div className="main-container" style={{ marginLeft: expand ? 260 : 56, transition: '0.3s ease' }}>
       <Sidebar
         className="sidebarComponent"
-        style={{ display: "flex", flexDirection: "column" }}
         width={expand ? 260 : 56}
         collapsible
       >
@@ -59,7 +60,7 @@ const SideBar = ({ children }: SideBarProps) => {
               <Nav.Item
                 eventKey="1"
                 className="siderbarComponent--nav_container--nav-item"
-                onClick={() => router.push("./home")}
+                onClick={() => router.push("/home")}
                 icon={<Icon as={MdDashboard} />}
               >
                 Dashboard
@@ -67,7 +68,7 @@ const SideBar = ({ children }: SideBarProps) => {
               <Nav.Item
                 eventKey="2"
                 className="siderbarComponent--nav_container--nav-item"
-                onClick={() => router.push("./providers")}
+                onClick={() => router.push("/providers")}
                 icon={<Icon as={MdList} />}
               >
                 Clientes
@@ -75,7 +76,7 @@ const SideBar = ({ children }: SideBarProps) => {
               <Nav.Item
                 eventKey="3"
                 className="siderbarComponent--nav_container--nav-item"
-                onClick={() => router.push("./home")}
+                onClick={() => router.push("/users")}
                 icon={<Icon as={MdGroup} />}
               >
                 Usuarios
@@ -183,7 +184,7 @@ const SideBar = ({ children }: SideBarProps) => {
         </Header>
         <Content>{children}</Content>
       </Container>
-    </Container>
+    </div>
   );
 };
 
@@ -200,6 +201,7 @@ const NavToggle = ({
       justifyContent={expand ? "flex-end" : "center"}
     >
       <IconButton
+        className="siderbarComponent--nav_container--nav-item"
         onClick={onChange}
         appearance="subtle"
         size="lg"
@@ -215,7 +217,7 @@ const Brand = ({ expand }: { expand: boolean }) => {
   return (
     <HStack className="page-brand" spacing={12}>
       <FaReact size={26} />
-      {expand && <Text>Brand</Text>}
+      {expand && <Text>HOTSPOT</Text>}
     </HStack>
   );
 };
