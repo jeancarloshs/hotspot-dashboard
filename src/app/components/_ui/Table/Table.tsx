@@ -8,19 +8,6 @@ import {
   IUsersConnected,
 } from "@/app/interface/IUsersConnected";
 
-// Definindo a interface para os dados dos usuários
-// interface IUser {
-//   id: number;
-//   avatar: string;
-//   firstName: string;
-//   lastName: string;
-//   gender: string;
-//   age: number;
-//   city: string;
-//   email: string;
-//   phone: string;
-// }
-
 interface ITableCProps {
   dataProps: IUsersConnected[];
 }
@@ -181,7 +168,7 @@ const TableC = ({ dataProps }: ITableCProps) => {
         <Cell dataKey="mac_address" />
       </Column>
 
-      <Column width={100}>
+      <Column width={120}>
         <HeaderCell>Uptime</HeaderCell>
         <Cell dataKey="uptime" />
       </Column>
