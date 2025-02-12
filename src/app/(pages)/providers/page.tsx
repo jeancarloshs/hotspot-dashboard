@@ -25,14 +25,19 @@ import { useRouter } from "next/navigation";
 const ProvidersPage = () => {
   const router = useRouter();
   const { Column, HeaderCell, Cell } = Table;
-  const [providers, setProviders] = useState<IProvider[]>();
+  const [providers, setProviders] = useState<IProvider[]>([]);
+  // const [providerID, setProviderID] = useState<string | any>(null);
   const [error, setError] = useState<any>();
   const [loading, setLoading] = useState<boolean>();
+  let ispID: any
 
-  const renderMenu = ({ onClose, left, top, className }: any, ref: any) => {
+  const renderMenu = ({ onClose, left, top, className }: any, ref: IProvider | any) => {
     const handleSelect = (eventKey: any) => {
       onClose();
-      console.log(eventKey);
+      console.log(`eventKey ${eventKey}`);
+      if (ispID) {
+        router.push(`/provider/hotspot_list/${ispID}`);
+      }
     };
     return (
       <Popover ref={ref} className={className} style={{ left, top }} full>
@@ -90,6 +95,9 @@ const ProvidersPage = () => {
           height={400}
           data={providers}
           onRowClick={(rowData: IProvider) => {
+            ispID = rowData.id;
+            // setProviderID(id)
+            renderMenu({}, ispID);
             console.log("rowData", rowData);
           }}
         >
@@ -146,7 +154,7 @@ const ProvidersPage = () => {
 
           <Column width={120} fixed="right">
             <HeaderCell>Opções</HeaderCell>
-              <ActionCell dataKey="id" />
+            <ActionCell dataKey="id" />
           </Column>
         </Table>
       </div>
