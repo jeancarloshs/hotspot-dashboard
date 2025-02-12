@@ -23,7 +23,7 @@ export async function getAllUsersConnected() {
 
   try {
     const response = await axios.request(reqOptions);
-    console.log(response.data);
+    // console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Erro ao obter provedores:", error);
