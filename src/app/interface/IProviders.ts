@@ -11,6 +11,7 @@ export default interface IProvider {
   cep?: string;
   estado?: string;
   slug?: string;
+  status?: string;
   token?: string;
   created_at?: Date | null;
   updated_at?: Date | null;
