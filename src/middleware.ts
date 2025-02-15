@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   // const token = Cookies.get(TOKEN_KEY);
   const token = request.cookies.get(TOKEN_KEY);
 
-  const protectedRoutes = ['/home', '/provider'];
+  const protectedRoutes = ['/home', '/providers', '/provider', '/users', '/user'];
 
   // const isProtectedRoute = protectedRoutes.includes(request.nextUrl.pathname);
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
@@ -25,6 +25,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/home/:path*',
-    '/provider/:path*'
+    '/providers/:path*',
+    '/provider/:path*',
+    '/users/:path*',
+    '/user/:path*',
   ]
 }
