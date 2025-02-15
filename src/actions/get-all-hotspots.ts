@@ -4,7 +4,7 @@ import ProdConfig from "@/app/api/config/prod_config";
 import axios from "axios";
 import { cookies } from "next/headers";
 
-export async function getAllHotspots(id: string) {
+export async function getAllHotspots(id?: string) {
   const _environment = new ProdConfig();
   const cookieStore = await cookies();
   const token = cookieStore.get("token");
