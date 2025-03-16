@@ -29,9 +29,12 @@ const ProvidersPage = () => {
   // const [providerID, setProviderID] = useState<string | any>(null);
   const [error, setError] = useState<any>();
   const [loading, setLoading] = useState<boolean>();
-  let ispID: any
+  let ispID: any;
 
-  const renderMenu = ({ onClose, left, top, className }: any, ref: IProvider | any) => {
+  const renderMenu = (
+    { onClose, left, top, className }: any,
+    ref: IProvider | any
+  ) => {
     const handleSelect = (eventKey: any) => {
       onClose();
       console.log(`eventKey ${eventKey}`);
@@ -88,11 +91,18 @@ const ProvidersPage = () => {
   //   return <p>Nenhum provedor encontrado.</p>;
   // }
 
+  const handleInsert = () => {
+    router.push("/provider/insert");
+  };
+
   return (
     <SideBar>
       <div className="sidebar--container">
+        <div className="btn" onClick={handleInsert}>
+          <p>Adicionar</p>
+        </div>
         <Table
-          height={400}
+          height={600}
           data={providers}
           onRowClick={(rowData: IProvider) => {
             ispID = rowData.id;
