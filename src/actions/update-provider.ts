@@ -5,7 +5,7 @@ import IProvider from "@/app/interface/IProviders";
 import axios from "axios";
 import { cookies } from "next/headers";
 
-export async function updateProvider(formData: IProvider) {
+export async function updateProvider(id: string | number, formData: IProvider) {
     const _environment = new ProdConfig();
     const cookieStore = await cookies();
     const token = cookieStore.get("token");
@@ -17,8 +17,8 @@ export async function updateProvider(formData: IProvider) {
     };
 
     const reqOptions = {
-        url: `${_environment.API_URL}/provider/update`,
-        method: "GET",
+        url: `${_environment.API_URL}/provider/${id}/update`,
+        method: "PUT",
         headers: headersList,
         data: formData
     };
