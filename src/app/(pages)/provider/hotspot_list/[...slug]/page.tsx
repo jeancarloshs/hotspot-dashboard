@@ -26,7 +26,8 @@ const HotspotsPage = ({ params }: any) => {
     };
     fetchHotspots();
   }, []);
-  console.log(allHotSpots);
+  // console.log(allHotSpots);
+
   return (
     <SideBar>
       <div className="sidebar--container">

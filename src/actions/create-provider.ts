@@ -43,7 +43,6 @@ export async function createProvider(formData: IProvider) {
 
 	try {
 		const response = await axios.request(reqOptions);
-		console.log("Dados recebidos no formData:", formData);
 		return {
 			response: response.data,
 			status: response.status

@@ -82,7 +82,7 @@ const ProvidersPage = () => {
     };
     fetchProviders();
   }, []);
-  console.log(providers);
+  // console.log(providers);
 
   // if (loading) return <p>Carregando...</p>;
   // if (error) return <p>{error}</p>;
