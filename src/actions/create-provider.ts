@@ -11,21 +11,21 @@ export async function createProvider(formData: IProvider) {
 	const token = cookieStore.get("token");
 
 	const bodyContent = JSON.stringify({
-		nome: formData.nome ?? null,
-		cnpj: formData.cnpj ?? null,
-		razao_social: formData.razao_social ?? null,
-		endereco: formData.endereco ?? null,
-		telefone: formData.telefone ?? null,
-		celular: formData.celular ?? null,
-		email: formData.email ?? null,
-		site: formData.site ?? null,
-		numero: formData.numero ?? null,
-		complemento: formData.complemento ?? null,
-		cidade: formData.cidade ?? null,
-		bairro: formData.bairro ?? null,
-		cep: formData.cep ?? null,
-		estado: formData.estado ?? null,
-		status: formData.status ?? null,
+		nome: formData.nome || null,
+		cnpj: formData.cnpj || null,
+		razao_social: formData.razao_social || null,
+		endereco: formData.endereco || null,
+		telefone: formData.telefone || null,
+		celular: formData.celular || null,
+		email: formData.email || null,
+		site: formData.site || null,
+		numero: formData.numero || null,
+		complemento: formData.complemento || null,
+		cidade: formData.cidade || null,
+		bairro: formData.bairro || null,
+		cep: formData.cep || null,
+		estado: formData.estado || null,
+		status: formData.status || null,
 	});
 
 	const headersList = {
