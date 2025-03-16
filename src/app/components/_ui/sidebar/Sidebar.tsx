@@ -42,7 +42,10 @@ const SideBar = ({ children }: SideBarProps) => {
   };
 
   return (
-    <div className="main-container" style={{ marginLeft: expand ? 260 : 56, transition: '0.3s ease' }}>
+    <div
+      className="main-container"
+      style={{ marginLeft: expand ? 260 : 56, transition: "0.3s ease" }}
+    >
       <Sidebar
         className="sidebarComponent"
         width={expand ? 260 : 56}
@@ -217,7 +220,7 @@ const Brand = ({ expand }: { expand: boolean }) => {
   return (
     <HStack className="page-brand" spacing={12}>
       <FaReact size={26} />
-      {expand && <Text>HOTSPOT</Text>}
+      {expand && <Text className="text">HOTSPOT</Text>}
     </HStack>
   );
 };
