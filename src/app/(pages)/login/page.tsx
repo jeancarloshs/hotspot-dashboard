@@ -18,26 +18,26 @@ const LoginPage = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => { }, []);
+  useEffect(() => {}, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsPeding(true)
+    setIsPeding(true);
     const formData = new FormData(event.currentTarget);
     try {
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      setIsPeding(false)
-      const dataLogin = await loginUser(formData);
-      router.push("./home")
-      // console.log("result", dataLogin)
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await loginUser(formData);
+      router.push("./home");
     } catch (error: any) {
       if (error.message.match("401")) {
-        return alert("Usuário ou senha inválidos")
+        setIsPeding(false);
+        return alert("Usuário ou senha inválidos");
       }
+      setIsPeding(false);
       alert(`Erro ao realizar login\n ${error}`);
       console.error("Erro ao realizar login", error);
     }
-  }
+  };
 
   // const handleOnLogin = (
   //   event: React.ChangeEvent<HTMLInputElement>,
