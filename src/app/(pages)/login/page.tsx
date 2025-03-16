@@ -4,6 +4,7 @@ import React, { useActionState, useEffect, useState } from "react";
 // import { NextResponse } from 'next/server';
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/actions/user-login";
+import { RolePermissions, Roles } from "@/app/interface/IStatusList";
 // import { Loader } from "rsuite";
 
 const LoginPage = () => {
@@ -26,16 +27,19 @@ const LoginPage = () => {
     const formData = new FormData(event.currentTarget);
     try {
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await loginUser(formData);
-      router.push("./home");
+      const response = await loginUser(formData);
+
+      if (response!.data!.objAuth!.permission === Roles.SUPER_ADMIN) {
+        router.push("./home");
+      }
     } catch (error: any) {
       if (error.message.match("401")) {
         setIsPeding(false);
         return alert("Usuário ou senha inválidos");
       }
       setIsPeding(false);
-      alert(`Erro ao realizar login\n ${error}`);
       console.error("Erro ao realizar login", error);
+      alert(`Erro ao realizar login\n ${error}`);
     }
   };
 
