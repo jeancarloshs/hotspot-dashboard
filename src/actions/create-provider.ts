@@ -11,17 +11,21 @@ export async function createProvider(formData: IProvider) {
 	const token = cookieStore.get("token");
 
 	const bodyContent = JSON.stringify({
-		nome: formData.nome,
-		cnpj: formData.cnpj,
-		razao_social: formData.razao_social,
-		endereco: formData.endereco,
-		numero: formData.numero,
-		complemento: formData.complemento,
-		cidade: formData.cidade,
-		bairro: formData.bairro,
-		cep: formData.cep,
-		estado: formData.estado,
-		status: formData.status,
+		nome: formData.nome ?? null,
+		cnpj: formData.cnpj ?? null,
+		razao_social: formData.razao_social ?? null,
+		endereco: formData.endereco ?? null,
+		telefone: formData.telefone ?? null,
+		celular: formData.celular ?? null,
+		email: formData.email ?? null,
+		site: formData.site ?? null,
+		numero: formData.numero ?? null,
+		complemento: formData.complemento ?? null,
+		cidade: formData.cidade ?? null,
+		bairro: formData.bairro ?? null,
+		cep: formData.cep ?? null,
+		estado: formData.estado ?? null,
+		status: formData.status ?? null,
 	});
 
 	const headersList = {
@@ -39,9 +43,21 @@ export async function createProvider(formData: IProvider) {
 
 	try {
 		const response = await axios.request(reqOptions);
-		console.log(response)
-		return response.data;
+		console.log("Dados recebidos no formData:", formData);
+		return {
+			response: response.data,
+			status: response.status
+		}
 	} catch (error) {
-		console.error("Erro ao salvar provedor:", error);
+		if (axios.isAxiosError(error)) {
+			return {
+				status: error.response?.status || 500,
+				data: error.response?.data || "Erro ao salvar provedor",
+			};
+		}
+		return {
+			status: 500,
+			data: "Erro desconhecido ao salvar provedor",
+		};
 	}
 }

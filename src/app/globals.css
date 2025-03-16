@@ -20,6 +20,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #111827;
+    /* --background: #283845; */
     --foreground: #ededed;
     --backgroudB: #1E2631;
     --bgContainerLogin: #1F2937;
@@ -28,8 +29,10 @@
     --btnColorFocus: #152961;
     --borderColor: #374151;
     --inputColor: #374151;
+    /* --inputColor: #3A4D5B; */
     --textColor: #d3d3d3;
     --sideBarColor: #1E2631;
+    /* --sideBarColor: #20303C; */
     --sideBarColorHover: #3c495c;
     --borderRadius: 8px;
   }
@@ -246,6 +249,8 @@ body {
 .inputForm {
   /* width: 492px !important; */
   width: 730px !important;
+  /* background-color: var(--inputColor) !important;
+  border-color: #5B7080 !important; */
 }
 
 .btn-container {
