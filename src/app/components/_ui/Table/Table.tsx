@@ -137,6 +137,11 @@ const TableC = ({ dataProps }: ITableCProps) => {
         console.log(data);
       }}
       renderRowExpanded={renderRowExpanded}
+      renderEmpty={() => (
+        <div style={{ padding: 20, textAlign: "center" }}>
+          Nenhum Usuário Conectado
+        </div>
+      )}
     >
       <Column width={70} align="center">
         <HeaderCell>#</HeaderCell>
