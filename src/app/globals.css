@@ -14,6 +14,7 @@
   --inputColor: #FFFFFF;
   --textColor: #000
   --sideBarColor: #F4F5F7;
+  --borderRadius: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -30,6 +31,7 @@
     --textColor: #d3d3d3;
     --sideBarColor: #1E2631;
     --sideBarColorHover: #3c495c;
+    --borderRadius: 8px;
   }
 
   .container--login_input {
@@ -117,7 +119,7 @@ body {
   margin-bottom: 20px;
   padding-left: 10px;
   transition: background-color 0.3s ease;
-  border-radius: 8px;
+  border-radius: var(--borderRadius);
   border: 1px solid black;
   /* outline: none !important; */
 }
@@ -135,7 +137,7 @@ body {
   width: 450px;
   height: 40px;
   background-color: var(--btnColor);
-  border-radius: 8px;
+  border-radius: var(--borderRadius);
   transition: background-color 0.2s ease;
 }
 
@@ -151,6 +153,18 @@ body {
 .main-container {
   display: flex;
   height: 100%;
+}
+
+.page-brand {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  color: var(--textColor) !important;
+}
+
+.text {
+  color: var(--textColor) !important;
+  font-size: 16px;
 }
 
 .sidebarComponent {
@@ -171,7 +185,7 @@ body {
 }
 
 .siderbarComponent--nav_container {
-  margin-top: 40px
+  margin-top: 20px
 }
 
 .siderbarComponent--nav_container--nav-item {
@@ -215,10 +229,50 @@ body {
   width: 90%;
 }
 
-/* .form-provider {
+.tableProviders {
+  height: 100vh !important;
+}
+
+.form-provider {
   display: flex;
-  flex: 1;
-} */
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 0 auto;
+  /* min-width: 500px; */
+}
+
+.inputForm {
+  /* width: 492px !important; */
+  width: 730px !important;
+}
+
+.btn-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start; /* Alinha os botões à esquerda */
+  gap: 10px; /* Adiciona um espaçamento entre os botões */
+  margin-top: 10px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 40px;
+  background: var(--sideBarColor);
+  border-radius: var(--borderRadius);
+  color: var(--textColor);
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: 0.3s ease;
+}
+
+.btn:hover {
+  background: var(--sideBarColorHover);
+}
 
 /* .content--container {
   width: 100vw;
@@ -234,6 +288,12 @@ body {
   /* ela fechada tem 56px 
   background-color: red;
 } */
+
+@media (max-width: 1600) {
+  .btn-container {
+    margin-top: 50px;
+  }
+}
 
 @media (max-width: 1366) {
   .line-chart {
