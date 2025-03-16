@@ -7,7 +7,7 @@ import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import IProvider from "@/app/interface/IProviders";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button, Form, Loader } from "rsuite";
+import { Button, Dropdown, Form, Loader } from "rsuite";
 
 const InsertProviderPage = () => {
   const router = useRouter();
@@ -141,7 +141,7 @@ const InsertProviderPage = () => {
               className="inputForm"
               placeholder="CNPJ"
               name="cnpj"
-              value={formData.cnpj}
+              value={formatCNPJ(formData.cnpj)}
               onChange={(value: string) => handleChange(value, "cnpj")}
               onBlur={handleCNPJBlur}
             />
@@ -162,7 +162,7 @@ const InsertProviderPage = () => {
               className="inputForm"
               placeholder="Telefone"
               name="telefone"
-              value={formData.telefone}
+              value={formatTel(formData.telefone)}
               onChange={(value: string) => handleChange(value, "telefone")}
             />
           </Form.Group>
@@ -172,7 +172,7 @@ const InsertProviderPage = () => {
               className="inputForm"
               placeholder="Celular"
               name="celular"
-              value={formData.celular}
+              value={formatTel(formData.celular)}
               onChange={(value: string) => handleChange(value, "celular")}
             />
           </Form.Group>
@@ -202,7 +202,7 @@ const InsertProviderPage = () => {
               className="inputForm"
               placeholder="CEP"
               name="cep"
-              value={formData.cep}
+              value={formatCEP(formData.cep)}
               onChange={(value: string) => handleChange(value, "cep")}
               onBlur={handleCepBlur}
             />
@@ -266,6 +266,17 @@ const InsertProviderPage = () => {
               value={formData.estado}
               onChange={(value: string) => handleChange(value, "estado")}
             />
+          </Form.Group>
+          <Form.Group controlId="estado">
+            <Form.ControlLabel>Status</Form.ControlLabel>
+            <Dropdown title="Status">
+              <Dropdown.Item>Ativo</Dropdown.Item>
+              <Dropdown.Item>Inativo</Dropdown.Item>
+              <Dropdown.Item>Bloqueado</Dropdown.Item>
+              <Dropdown.Item>Pendente</Dropdown.Item>
+              <Dropdown.Item>Rejeitado</Dropdown.Item>
+              <Dropdown.Item>Cancelado</Dropdown.Item>
+            </Dropdown>
           </Form.Group>
         </Form>
         <div className="btn-container">
