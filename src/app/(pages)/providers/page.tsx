@@ -38,18 +38,27 @@ const ProvidersPage = () => {
     const handleSelect = (eventKey: any) => {
       onClose();
       console.log(`eventKey ${eventKey}`);
-      if (ispID) {
-        router.push(`/provider/hotspot_list/${ispID}`);
+      switch (eventKey) {
+        case 1:
+          router.push(`/provider/home/${ispID}`);
+          break;
+        case 2:
+          router.push(`/provider/hotspot_list/${ispID}`);
+          break;
+        case 3:
+          router.push(`/provider/show/${ispID}`);
+          break;
+        default:
+          console.log("escolha uma opção");
       }
     };
+
     return (
       <Popover ref={ref} className={className} style={{ left, top }} full>
         <Dropdown.Menu onSelect={handleSelect}>
-          <Dropdown.Item eventKey={1}>Hotspots</Dropdown.Item>
-          <Dropdown.Item eventKey={2}>Editar</Dropdown.Item>
-          {/* <Dropdown.Item eventKey={3}>Add to friends</Dropdown.Item> */}
-          {/* <Dropdown.Item eventKey={4}>View Profile</Dropdown.Item>
-          <Dropdown.Item eventKey={5}>Block</Dropdown.Item> */}
+          <Dropdown.Item eventKey={1}>Home</Dropdown.Item>
+          <Dropdown.Item eventKey={2}>Hotspots</Dropdown.Item>
+          <Dropdown.Item eventKey={3}>Editar</Dropdown.Item>
         </Dropdown.Menu>
       </Popover>
     );
