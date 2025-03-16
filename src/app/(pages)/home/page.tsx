@@ -15,39 +15,40 @@ import { getAllUsers } from "@/actions/get-all-users";
 import { getAllHotspots } from "@/actions/get-all-hotspots";
 
 const HomePage = () => {
-  const [allUsersConnected, setAllUsersConnected] = useState<IUsersConnected[]>([]); // Inicializando o estado como um array vazio
-  const [allUseres, setAllUsers] = useState<IUsersConnected[]>([])
+  const [allUsersConnected, setAllUsersConnected] = useState<IUsersConnected[]>(
+    []
+  );
+  const [allUseres, setAllUsers] = useState<IUsersConnected[]>([]);
   const [allProviders, setAllProviders] = useState<IProvider[]>([]);
   const [allHotspots, setAllHotspots] = useState<any>([]);
 
   useEffect(() => {
-    // Função assíncrona dentro do useEffect para obter os dados dos provedores
     const fetchProviders = async () => {
       try {
-        const _getAllUsersConnected = await getAllUsersConnected(); // Chama a função assíncrona para pegar os dados dos provedores
+        const _getAllUsersConnected = await getAllUsersConnected();
         const _getAllUsers = await getAllUsers();
         const _getAllProviders = await getAllProviders();
         const _getAllHotspots = await getAllHotspots();
-        setAllUsers(_getAllUsers)
-        setAllProviders(_getAllProviders)
+        setAllUsers(_getAllUsers);
+        setAllProviders(_getAllProviders);
         setAllHotspots(_getAllHotspots);
 
         // Verifica se o retorno é um array, se não, inicializa providers como array vazio
         if (Array.isArray(_getAllUsersConnected)) {
-          setAllUsersConnected(_getAllUsersConnected); // Atualiza o estado com os dados dos provedores
+          setAllUsersConnected(_getAllUsersConnected);
         } else {
           console.error("Erro: A resposta da API não é um array");
-          setAllUsersConnected([]); // Se não for array, define providers como array vazio
+          setAllUsersConnected([]);
         }
       } catch (error) {
         console.error("Erro ao carregar provedores:", error);
-        setAllUsersConnected([]); // Define providers como array vazio em caso de erro
+        setAllUsersConnected([]);
       }
     };
 
-    fetchProviders(); // Chama a função para buscar os provedores
-  }, []); // O array vazio significa que isso só vai rodar uma vez, quando o componente for montado
-  console.log(allUsersConnected);
+    fetchProviders();
+  }, []);
+
   return (
     <SideBar>
       <div className="sidebar--container">
