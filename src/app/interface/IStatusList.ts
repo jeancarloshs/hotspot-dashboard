@@ -22,7 +22,7 @@ export enum StatusList {
 
 //Define os papéis principais do sistema.
 export enum Roles {
-    SUPER_ADMIN = "super_administrador", // Administrador global com acesso total
+    SUPER_ADMIN = "super_admin", // Administrador global com acesso total
     PROVIDER_ADMIN = "provider_admin", // Administrador do provedor com acesso limitado
 }
 
