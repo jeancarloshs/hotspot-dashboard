@@ -147,7 +147,7 @@ const ProvidersPage = () => {
 
           <Column width={200}>
             <HeaderCell>Status</HeaderCell>
-            <Cell dataKey="status" />
+            <Cell dataKey="status" className="statusProvider" />
           </Column>
 
           {/* <Column width={300}>
