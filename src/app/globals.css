@@ -279,6 +279,10 @@ body {
   background: var(--sideBarColorHover);
 }
 
+.statusProvider {
+  text-transform: capitalize;
+}
+
 /* .content--container {
   width: 100vw;
   height: 100vh;
