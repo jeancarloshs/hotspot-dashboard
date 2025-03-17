@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllProviders } from "@/actions/get-all-provideres";
-import { getAllUsersConnected } from "@/actions/get-all-users-connected";
+import { getAllClientsConnected } from "@/actions/get-all-clients-connected";
 import IProvider from "@/app/interface/IProviders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { IServer, IUsersConnected } from "@/app/interface/IUsersConnected";
@@ -11,38 +11,38 @@ import { Stat, StatGroup } from "rsuite";
 import PeoplesIcon from "@rsuite/icons/Peoples";
 import FunnelStepsIcon from "@rsuite/icons/FunnelSteps";
 import { LineChart } from "@mui/x-charts";
-import { getAllUsers } from "@/actions/get-all-users";
+import { getAllClients } from "@/actions/get-all-clients";
 import { getAllHotspots } from "@/actions/get-all-hotspots";
 
 const HomePage = () => {
-  const [allUsersConnected, setAllUsersConnected] = useState<IUsersConnected[]>(
-    []
-  );
-  const [allUseres, setAllUsers] = useState<IUsersConnected[]>([]);
+  const [allClientsConnected, setAllClientsConnected] = useState<
+    IUsersConnected[]
+  >([]);
+  const [allClients, setAllClients] = useState<IUsersConnected[]>([]);
   const [allProviders, setAllProviders] = useState<IProvider[]>([]);
   const [allHotspots, setAllHotspots] = useState<any>([]);
 
   useEffect(() => {
     const fetchProviders = async () => {
       try {
-        const _getAllUsersConnected = await getAllUsersConnected();
-        const _getAllUsers = await getAllUsers();
+        const _getAllClientsConnected = await getAllClientsConnected();
+        const _getAllClients = await getAllClients();
         const _getAllProviders = await getAllProviders();
         const _getAllHotspots = await getAllHotspots();
-        setAllUsers(_getAllUsers);
+        setAllClients(_getAllClients);
         setAllProviders(_getAllProviders);
         setAllHotspots(_getAllHotspots);
 
         // Verifica se o retorno é um array, se não, inicializa providers como array vazio
-        if (Array.isArray(_getAllUsersConnected)) {
-          setAllUsersConnected(_getAllUsersConnected);
+        if (Array.isArray(_getAllClientsConnected)) {
+          setAllClientsConnected(_getAllClientsConnected);
         } else {
           console.error("Erro: A resposta da API não é um array");
-          setAllUsersConnected([]);
+          setAllClientsConnected([]);
         }
       } catch (error) {
         console.error("Erro ao carregar provedores:", error);
-        setAllUsersConnected([]);
+        setAllClientsConnected([]);
       }
     };
 
@@ -57,7 +57,7 @@ const HomePage = () => {
             bordered
             icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
           >
-            <Stat.Value>{allUseres.length}</Stat.Value>
+            <Stat.Value>{allClients.length}</Stat.Value>
             <Stat.Label>Total de Clientes</Stat.Label>
           </Stat>
 
@@ -65,7 +65,7 @@ const HomePage = () => {
             bordered
             icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
           >
-            <Stat.Value>{allUsersConnected.length}</Stat.Value>
+            <Stat.Value>{allClientsConnected.length}</Stat.Value>
             <Stat.Label>Clientes Online</Stat.Label>
           </Stat>
 
@@ -114,7 +114,7 @@ const HomePage = () => {
           />
         </div>
 
-        <TableC dataProps={allUsersConnected} />
+        <TableC dataProps={allClientsConnected} />
       </div>
     </SideBar>
   );
