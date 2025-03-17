@@ -1,35 +1,33 @@
 "use client";
 
-import { getAllProviders } from "@/actions/get-all-provideres";
+import React, { useEffect, useState } from "react";
+import { getAllHotspots } from "@/actions/get-all-hotspots";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
-import IProvider from "@/app/interface/IProviders";
-import { useEffect, useState } from "react";
-// import { Button, ButtonToolbar } from "rsuite";
-import AddOutlineIcon from "@rsuite/icons/AddOutline";
-import GearIcon from "@rsuite/icons/Gear";
-import {
-  Table,
-  Button,
-  Popover,
-  Whisper,
-  Checkbox,
-  Dropdown,
-  IconButton,
-  Progress,
-} from "rsuite";
-import MoreIcon from "@rsuite/icons/legacy/More";
-import PlusRoundIcon from "@rsuite/icons/PlusRound";
-import { mockUsers } from "@/mock";
+import { IHotspot } from "@/app/interface/IUsersConnected";
 import { useRouter } from "next/navigation";
+import {
+  Button,
+  Dropdown,
+  Form,
+  IconButton,
+  Loader,
+  Popover,
+  Table,
+  Whisper,
+} from "rsuite";
+import PlusRoundIcon from "@rsuite/icons/PlusRound";
+import IProvider from "@/app/interface/IProviders";
 
-const ProvidersPage = () => {
+const HotspotsPage = ({ params }: any) => {
   const router = useRouter();
+  const [allHotSpots, setAllHotspots] = useState<IHotspot[]>([]);
   const { Column, HeaderCell, Cell } = Table;
-  const [providers, setProviders] = useState<IProvider[]>([]);
-  // const [providerID, setProviderID] = useState<string | any>(null);
+  // const [users, setUsers] = useState<IUsersConnected[]>([]);
   const [error, setError] = useState<any>();
   const [loading, setLoading] = useState<boolean>();
-  let ispID: any;
+  const resolvedParams = React.use<any>(params);
+  const slug = resolvedParams.slug[0];
+  //   const slugID = resolvedParams.slug[1];
 
   const renderMenu = (
     { onClose, left, top, className }: any,
@@ -40,13 +38,13 @@ const ProvidersPage = () => {
       console.log(`eventKey ${eventKey}`);
       switch (eventKey) {
         case 1:
-          router.push(`/provider/home/${ispID}`);
+          router.push(`/user/${slug}`);
           break;
         case 2:
-          router.push(`/provider/hotspots/${ispID}`);
+          router.push(`/user/hotspots/${slug}`);
           break;
         case 3:
-          router.push(`/provider/show/${ispID}`);
+          router.push(`/user/show/${slug}`);
           break;
         default:
           console.log("escolha uma opção");
@@ -57,7 +55,7 @@ const ProvidersPage = () => {
       <Popover ref={ref} className={className} style={{ left, top }} full>
         <Dropdown.Menu onSelect={handleSelect}>
           <Dropdown.Item eventKey={1}>Home</Dropdown.Item>
-          <Dropdown.Item eventKey={2}>Hotspots</Dropdown.Item>
+          <Dropdown.Item eventKey={2}>Configurações</Dropdown.Item>
           <Dropdown.Item eventKey={3}>Editar</Dropdown.Item>
         </Dropdown.Menu>
       </Popover>
@@ -79,75 +77,75 @@ const ProvidersPage = () => {
   };
 
   useEffect(() => {
-    const fetchProviders = async () => {
+    const fetchHotspots = async () => {
+      const _getAllHotspots = await getAllHotspots(slug);
       try {
-        const _getAllProviders = await getAllProviders();
-        setProviders(_getAllProviders);
+        setAllHotspots(_getAllHotspots);
       } catch (error) {
-        setError("Erro ao carregar os provedores");
+        setError("Erro ao carregar os hotspots");
       } finally {
         setLoading(false);
       }
     };
-    fetchProviders();
+    fetchHotspots();
   }, []);
-  // console.log(providers);
 
-  // if (loading) return <p>Carregando...</p>;
-  // if (error) return <p>{error}</p>;
+  console.log(allHotSpots);
 
-  // if (!providers || providers.length === 0) {
-  //   return <p>Nenhum provedor encontrado.</p>;
-  // }
+  const handlePageBack = () => {
+    router.push("/providers");
+  };
 
-  const handleInsert = () => {
-    router.push("/provider/insert");
+  const handleInsert = (id: any): any => {
+    console.log("id", id);
+    // router.push("/providers");
   };
 
   return (
     <SideBar>
       <div className="sidebar--container">
-        <div className="btn" onClick={handleInsert}>
-          <p>Adicionar</p>
+        <div className="btn-container">
+          <div className="btn" onClick={handlePageBack}>
+            <p>Voltar</p>
+          </div>
+          <div className="btn" onClick={() => handleInsert(slug)}>
+            <p>Adicionar</p>
+          </div>
         </div>
+
         <Table
           height={600}
-          data={providers}
-          onRowClick={(rowData: IProvider) => {
-            ispID = rowData.id;
-            // setProviderID(id)
-            renderMenu({}, ispID);
-            console.log("rowData", rowData);
-          }}
+          data={allHotSpots}
+          // onRowClick={(rowData: IUsersConnected) => {
+          //   userID = rowData.id;
+          //   // setProviderID(id)
+          //   renderMenu({}, userID);
+          //   console.log("rowData", rowData);
+          // }}
           renderEmpty={() => (
             <div style={{ padding: 20, textAlign: "center" }}>
-              Nenhum Provedor Cadastrado
+              Nenhum Hotspot Cadastrado
             </div>
           )}
         >
-          <Column width={60} align="center" fixed>
+          <Column width={100} align="center" fixed>
             <HeaderCell>Id</HeaderCell>
             <Cell dataKey="id" />
           </Column>
 
           <Column width={200}>
-            <HeaderCell>Provedor</HeaderCell>
+            <HeaderCell>Nome Hotspot</HeaderCell>
             <Cell dataKey="nome" />
           </Column>
 
           <Column width={200}>
-            <HeaderCell>Razão Social</HeaderCell>
-            <Cell dataKey="razao_social" />
+            <HeaderCell>Provedor</HeaderCell>
+            <Cell dataKey="isp.nome" />
           </Column>
 
           <Column width={200}>
-            <HeaderCell>CNPJ</HeaderCell>
-            <Cell dataKey="cnpj" />
-          </Column>
-
-          <Column width={200}>
-            <HeaderCell>Cidade</HeaderCell>
-            <Cell dataKey="cidade" />
+            <HeaderCell>IP</HeaderCell>
+            <Cell dataKey="ip" />
           </Column>
 
           <Column width={200}>
@@ -165,4 +163,4 @@ const ProvidersPage = () => {
   );
 };
 
-export default ProvidersPage;
+export default HotspotsPage;
