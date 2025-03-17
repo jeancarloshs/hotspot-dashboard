@@ -139,6 +139,7 @@ body {
 .btnLogin {
   width: 450px;
   height: 40px;
+  color: var(--textColor);
   background-color: var(--btnColor);
   border-radius: var(--borderRadius);
   transition: background-color 0.2s ease;
