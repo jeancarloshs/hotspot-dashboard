@@ -13,6 +13,7 @@ const InsertProviderPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState("");
   const [formData, setFormData] = useState<IProvider>({
     nome: "",
     cnpj: "",
@@ -36,6 +37,10 @@ const InsertProviderPage = () => {
       ...formData,
       [key]: value,
     });
+  };
+
+  const handleSelect = (eventKey: string) => {
+    setSelectedValue(eventKey); // Atualiza o estado com o valor selecionado
   };
 
   const handleCepBlur = async (event: React.FocusEvent<HTMLElement>) => {
@@ -111,6 +116,7 @@ const InsertProviderPage = () => {
       cep: formattedCEP,
       telefone: formattedTelefone,
       celular: formattedCel,
+      status: selectedValue,
     });
 
     if (response.status === 201) {
@@ -267,15 +273,19 @@ const InsertProviderPage = () => {
               onChange={(value: string) => handleChange(value, "estado")}
             />
           </Form.Group>
-          <Form.Group controlId="estado">
+          <Form.Group controlId="status">
             <Form.ControlLabel>Status</Form.ControlLabel>
-            <Dropdown title="Status">
-              <Dropdown.Item>Ativo</Dropdown.Item>
-              <Dropdown.Item>Inativo</Dropdown.Item>
-              <Dropdown.Item>Bloqueado</Dropdown.Item>
-              <Dropdown.Item>Pendente</Dropdown.Item>
-              <Dropdown.Item>Rejeitado</Dropdown.Item>
-              <Dropdown.Item>Cancelado</Dropdown.Item>
+            <Dropdown
+              title={selectedValue || "Selecione uma opção"}
+              onSelect={handleSelect}
+            >
+              <Dropdown.Item>Selecione uma opção</Dropdown.Item>
+              <Dropdown.Item eventKey={"ativo"}>Ativo</Dropdown.Item>
+              <Dropdown.Item eventKey={"inativo"}>Inativo</Dropdown.Item>
+              <Dropdown.Item eventKey={"bloqueado"}>Bloqueado</Dropdown.Item>
+              <Dropdown.Item eventKey={"pendente"}>Pendente</Dropdown.Item>
+              <Dropdown.Item eventKey={"rejeitado"}>Rejeitado</Dropdown.Item>
+              <Dropdown.Item eventKey={"cancelado"}>Cancelado</Dropdown.Item>
             </Dropdown>
           </Form.Group>
         </Form>

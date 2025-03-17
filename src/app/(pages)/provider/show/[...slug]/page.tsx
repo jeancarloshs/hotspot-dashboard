@@ -10,9 +10,10 @@ import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import IProvider from "@/app/interface/IProviders";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Button, Form, Loader } from "rsuite";
+import { Button, Dropdown, Form, Loader } from "rsuite";
 import { getProvider } from "@/actions/get-provider";
 import { updateProvider } from "@/actions/update-provider";
+import { capitalize } from "@mui/material";
 
 const ProviderPage = ({ params }: any) => {
   const router = useRouter();
@@ -21,6 +22,7 @@ const ProviderPage = ({ params }: any) => {
   const [error, setError] = useState<string | null>(null);
   const resolvedParams = React.use<any>(params);
   const slug = resolvedParams.slug[0];
+  const [selectedValue, setSelectedValue] = useState("");
   const [formData, setFormData] = useState<IProvider>({
     nome: "",
     cnpj: "",
@@ -44,6 +46,10 @@ const ProviderPage = ({ params }: any) => {
       ...formData,
       [key]: value,
     });
+  };
+
+  const handleSelect = (eventKey: string) => {
+    setSelectedValue(capitalize(eventKey)); // Atualiza o estado com o valor selecionado
   };
 
   const handleCepBlur = async (event: React.FocusEvent<HTMLElement>) => {
@@ -125,6 +131,7 @@ const ProviderPage = ({ params }: any) => {
       cep: formattedCEP,
       telefone: formattedTelefone === "" ? null : formattedTelefone,
       celular: formattedCel === "" ? null : formattedCel,
+      status: selectedValue.toLowerCase(),
     });
 
     if (response.status === 200) {
@@ -154,7 +161,7 @@ const ProviderPage = ({ params }: any) => {
           bairro: _getProvider?.bairro ?? null,
           cep: _getProvider?.cep ?? null,
           estado: _getProvider?.estado ?? null,
-          status: _getProvider?.status ?? null,
+          status: setSelectedValue(capitalize(_getProvider?.status)) ?? "",
         });
       } catch (error) {
         console.error("Erro ao buscar provedor:", error);
@@ -310,6 +317,21 @@ const ProviderPage = ({ params }: any) => {
               value={formData.estado}
               onChange={(value: string) => handleChange(value, "estado")}
             />
+          </Form.Group>
+          <Form.Group controlId="status">
+            <Form.ControlLabel>Status</Form.ControlLabel>
+            <Dropdown
+              title={selectedValue || "Selecione uma opção"}
+              onSelect={handleSelect}
+            >
+              <Dropdown.Item>Selecione uma opção</Dropdown.Item>
+              <Dropdown.Item eventKey={"ativo"}>Ativo</Dropdown.Item>
+              <Dropdown.Item eventKey={"inativo"}>Inativo</Dropdown.Item>
+              <Dropdown.Item eventKey={"bloqueado"}>Bloqueado</Dropdown.Item>
+              <Dropdown.Item eventKey={"pendente"}>Pendente</Dropdown.Item>
+              <Dropdown.Item eventKey={"rejeitado"}>Rejeitado</Dropdown.Item>
+              <Dropdown.Item eventKey={"cancelado"}>Cancelado</Dropdown.Item>
+            </Dropdown>
           </Form.Group>
         </Form>
         <div className="btn-container">
