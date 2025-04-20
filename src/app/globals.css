@@ -3,30 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --background: #F8FAFB;
-  --foreground: #171717;
-  --bgContainerLogin: #FFFFFF;
-  --btnColor: #2589F5;
-  --btnColorHover: #1e40af;
-  --btnColorFocus: #1d4ed8;
-  --inputColor: #FFFFFF;
-  --textColor: #000
-  --sideBarColor: #F4F5F7;
+  :root {
+    --background: #f8fafb;
+    --foreground: #171717;
+    --backgroundB: #e5e7eb;
+    --bgContainerLogin: #ffffff;
+    --btnColor: #2589f5;
+    --btnColorHover: #1e40af;
+    --btnColorFocus: #1d4ed8;
+    --borderColor: #e5e7eb;
+    --inputColor: #ffffff;
+    --textColor: #000;
+    --sideBarColor: #f4f5f7;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #111827;
     --foreground: #ededed;
-    --backgroudB: #1E2631;
-    --bgContainerLogin: #1F2937;
-    --btnColor: #2563EB;
+    --backgroundB: #1e2631;
+    --bgContainerLogin: #1f2937;
+    --btnColor: #2563eb;
     --btnColorHover: #1e3a8a;
     --btnColorFocus: #152961;
     --borderColor: #374151;
     --inputColor: #374151;
     --textColor: #fff;
-    --sideBarColor: #1E2631;
+    --sideBarColor: #1e2631;
   }
 
   .container--login_input {
@@ -52,7 +56,7 @@ body {
   align-items: center;
   min-height: 100vh;
   margin: 0;
-  background: var(--backgroudB);
+  background: var(--backgroundB);
 }
 
 .container--login--section {
@@ -120,12 +124,31 @@ body {
 }
 
 .container--login_input::placeholder {
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
 .container--login_input:focus {
   outline: none;
   /* box-shadow: inset 0 0 0 2px rgb(135, 131, 190); */
+}
+
+.input-password-wrapper {
+  position: relative;
+  width: fit-content;
+}
+
+.password--icon {
+  position: absolute;
+  right: 10px;
+  top: 35%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.password--icon:hover {
+  cursor: pointer;
 }
 
 .btnLogin {
@@ -151,7 +174,7 @@ body {
 }
 
 .siderbarComponent--nav_container {
-  margin-top: 40px
+  margin-top: 40px;
 }
 
 .siderbarComponent--nav_container--nav-item {
@@ -191,5 +214,29 @@ body {
 @media (max-width: 1366) {
   .line-chart {
     width: 50% !important;
+  }
+}
+
+@media (max-width: 520) {
+  .container--login--section {
+    width: 480px;
+  }
+}
+
+@media (max-width: 480) {
+  .container--login--section {
+    width: 370px;
+  }
+
+  .container--login_form-group {
+    align-items: center;
+  }
+
+  .container--login_input {
+    width: 350px;
+  }
+
+  .btnLogin {
+    width: 350px;
   }
 }

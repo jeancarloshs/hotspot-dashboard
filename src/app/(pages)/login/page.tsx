@@ -4,6 +4,8 @@ import React, { useActionState, useEffect, useState } from "react";
 // import { NextResponse } from 'next/server';
 import { useRouter } from "next/navigation";
 import { loginUser } from "@/actions/user-login";
+import EyeRoundIcon from "@rsuite/icons/EyeRound";
+import EyeCloseIcon from "@rsuite/icons/EyeClose";
 // import { Loader } from "rsuite";
 
 const LoginPage = () => {
@@ -17,25 +19,31 @@ const LoginPage = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(true);
 
-  useEffect(() => { }, []);
+  useEffect(() => {}, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsPeding(true)
+    setIsPeding(true);
     const formData = new FormData(event.currentTarget);
     try {
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      setIsPeding(false)
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      setIsPeding(false);
       const dataLogin = await loginUser(formData);
-      router.push("./home")
+      router.push("./home");
       // console.log("result", dataLogin)
     } catch (error: any) {
       if (error.message.match("401")) {
-        return alert("Usuário ou senha inválidos")
+        return alert("Usuário ou senha inválidos");
       }
       console.error("Erro ao realizar login", error);
     }
+  };
+
+  const handleShowPassword = () => {
+    setShowPassword(!showPassword);
+    console.log(showPassword)
   }
 
   // const handleOnLogin = (
@@ -85,16 +93,31 @@ const LoginPage = () => {
                 placeholder="Email"
                 required
               />
-              <label htmlFor="password"></label>
-              <input
-                type="password"
-                name="password"
-                // value={formLogin.password}
-                // onChange={(event) => handleOnLogin(event, "password")}
-                className="container--login_input"
-                placeholder="Password"
-                required
-              />
+              <div className="input-password-wrapper">
+                <label htmlFor="password"></label>
+                <input
+                  type={showPassword == true ? "password" : "text"}
+                  name="password"
+                  // value={formLogin.password}
+                  // onChange={(event) => handleOnLogin(event, "password")}
+                  className="container--login_input password"
+                  placeholder="Password"
+                  required
+                />
+                {showPassword == true ? (
+                  <EyeCloseIcon
+                    color="white"
+                    className="password--icon"
+                    onClick={() => handleShowPassword()}
+                  />
+                ) : (
+                  <EyeRoundIcon
+                    color="white"
+                    className="password--icon"
+                    onClick={() => handleShowPassword()}
+                  />
+                )}
+              </div>
             </div>
             <button disabled={isPeding} className="btnLogin">
               {isPeding ? "Carregando..." : "Login"}
