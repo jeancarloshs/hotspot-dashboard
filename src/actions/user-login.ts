@@ -40,7 +40,6 @@ export async function loginUser(data: FormData | null): Promise<any> {
 
   try {
     const response = await axios.request(reqOptions);
-    // console.log(response.data)
 
     if (response.status === 200) {
       cookieStore.set("token", response.data.objAuth.token, {
@@ -52,7 +51,10 @@ export async function loginUser(data: FormData | null): Promise<any> {
       });
     }
 
-    return response.data;
+    return {
+      data: response.data,
+      status: response.status
+    }
   } catch (error: any) {
     if (error.response.status === 401) {
       throw new Error("Usuário ou senha inválidos.");

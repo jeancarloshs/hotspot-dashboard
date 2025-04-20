@@ -4,7 +4,7 @@ import ProdConfig from "@/app/api/config/prod_config";
 import axios from "axios";
 import { cookies } from "next/headers";
 
-export async function getAllUsersConnected() {
+export async function getAllClientsConnected() {
   const _environment = new ProdConfig();
   const cookieStore = await cookies();
   const token = cookieStore.get("token");
@@ -23,7 +23,7 @@ export async function getAllUsersConnected() {
 
   try {
     const response = await axios.request(reqOptions);
-    console.log(response.data);
+    // console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Erro ao obter provedores:", error);

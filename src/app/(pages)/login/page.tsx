@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { loginUser } from "@/actions/user-login";
 import EyeRoundIcon from "@rsuite/icons/EyeRound";
 import EyeCloseIcon from "@rsuite/icons/EyeClose";
+import { RolePermissions, Roles } from "@/app/interface/IStatusList";
 // import { Loader } from "rsuite";
 
 const LoginPage = () => {
@@ -29,21 +30,24 @@ const LoginPage = () => {
     const formData = new FormData(event.currentTarget);
     try {
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      setIsPeding(false);
-      const dataLogin = await loginUser(formData);
-      router.push("./home");
-      // console.log("result", dataLogin)
+      const response = await loginUser(formData);
+
+      if (response!.data!.objAuth!.permission === Roles.SUPER_ADMIN) {
+        router.push("./home");
+      }
     } catch (error: any) {
       if (error.message.match("401")) {
+        setIsPeding(false);
         return alert("Usuário ou senha inválidos");
       }
+      setIsPeding(false);
       console.error("Erro ao realizar login", error);
+      alert(`Erro ao realizar login\n ${error}`);
     }
   };
 
   const handleShowPassword = () => {
     setShowPassword(!showPassword);
-    console.log(showPassword)
   }
 
   // const handleOnLogin = (

@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 :root {
-  :root {
-    --background: #f8fafb;
-    --foreground: #171717;
-    --backgroundB: #e5e7eb;
-    --bgContainerLogin: #ffffff;
-    --btnColor: #2589f5;
-    --btnColorHover: #1e40af;
-    --btnColorFocus: #1d4ed8;
-    --borderColor: #e5e7eb;
-    --inputColor: #ffffff;
-    --textColor: #000;
-    --sideBarColor: #f4f5f7;
-  }
+  --background: #F8FAFB;
+  --foreground: #171717;
+  --backgroudB: #1E2631;
+  --bgContainerLogin: #FFFFFF;
+  --btnColor: #2589F5;
+  --btnColorHover: #1e40af;
+  --btnColorFocus: #1d4ed8;
+  --borderColor: #374151;
+  --inputColor: #FFFFFF;
+  --textColor: #000
+  --sideBarColor: #F4F5F7;
+  --borderRadius: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #111827;
+    /* --background: #283845; */
     --foreground: #ededed;
     --backgroundB: #1e2631;
     --bgContainerLogin: #1f2937;
@@ -29,8 +29,12 @@
     --btnColorFocus: #152961;
     --borderColor: #374151;
     --inputColor: #374151;
-    --textColor: #fff;
-    --sideBarColor: #1e2631;
+    /* --inputColor: #3A4D5B; */
+    --textColor: #d3d3d3;
+    --sideBarColor: #1E2631;
+    /* --sideBarColor: #20303C; */
+    --sideBarColorHover: #3c495c;
+    --borderRadius: 8px;
   }
 
   .container--login_input {
@@ -118,7 +122,7 @@ body {
   margin-bottom: 20px;
   padding-left: 10px;
   transition: background-color 0.3s ease;
-  border-radius: 8px;
+  border-radius: var(--borderRadius);
   border: 1px solid black;
   /* outline: none !important; */
 }
@@ -154,8 +158,9 @@ body {
 .btnLogin {
   width: 450px;
   height: 40px;
+  color: var(--textColor);
   background-color: var(--btnColor);
-  border-radius: 8px;
+  border-radius: var(--borderRadius);
   transition: background-color 0.2s ease;
 }
 
@@ -168,22 +173,73 @@ body {
   box-shadow: 0 0 5px var(--btnColorFocus);
 }
 
+.main-container {
+  display: flex;
+  height: 100%;
+}
+
+.page-brand {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  color: var(--textColor) !important;
+}
+
+.text {
+  color: var(--textColor) !important;
+  font-size: 16px;
+}
+
 .sidebarComponent {
-  height: 100vh;
   background-color: var(--sideBarColor);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow-y: auto
+}
+
+.sidebarComponent.collapsed {
+  width: 56px;
 }
 
 .siderbarComponent--nav_container {
-  margin-top: 40px;
+  margin-top: 20px
 }
 
 .siderbarComponent--nav_container--nav-item {
-  color: white !important;
+  color: var(--textColor) !important;
+}
+
+.siderbarComponent--nav_container--nav-item:hover {
+  background-color: var(--sideBarColorHover) !important;
+}
+
+.siderbarComponent--nav_container--nav-item > a {
+  color: var(--textColor) !important;
+}
+
+.siderbarComponent--nav_container--nav-item > a:hover {
+  background-color: var(--sideBarColorHover) !important;
 }
 
 .sidebar--container {
   width: 90%;
   margin: 0 auto;
+  margin-bottom: 75px;
+}
+
+.content {
+  transition: margin-left 0.3s ease;
+  margin-left: 0;
+}
+
+.content.shifted {
+  margin-left: 260px;
 }
 
 .container--line-chart {
@@ -194,6 +250,57 @@ body {
 
 .line-chart {
   width: 90%;
+}
+
+.tableProviders {
+  height: 100vh !important;
+}
+
+.form-provider {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 0 auto;
+  /* min-width: 500px; */
+}
+
+.inputForm {
+  /* width: 492px !important; */
+  width: 730px !important;
+  /* background-color: var(--inputColor) !important;
+  border-color: #5B7080 !important; */
+}
+
+.btn-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start; /* Alinha os botões à esquerda */
+  gap: 10px; /* Adiciona um espaçamento entre os botões */
+  margin-top: 10px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 40px;
+  background: var(--sideBarColor);
+  border-radius: var(--borderRadius);
+  color: var(--textColor);
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: 0.3s ease;
+}
+
+.btn:hover {
+  background: var(--sideBarColorHover);
+}
+
+.statusProvider {
+  text-transform: capitalize;
 }
 
 /* .content--container {
@@ -210,6 +317,12 @@ body {
   /* ela fechada tem 56px 
   background-color: red;
 } */
+
+@media (max-width: 1600) {
+  .btn-container {
+    margin-top: 50px;
+  }
+}
 
 @media (max-width: 1366) {
   .line-chart {

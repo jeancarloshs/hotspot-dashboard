@@ -1,42 +1,54 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getProviders } from "@/actions/get-provideres";
-import { getAllUsersConnected } from "@/actions/get-all-users-connected";
+import { getAllProviders } from "@/actions/get-all-provideres";
+import { getAllClientsConnected } from "@/actions/get-all-clients-connected";
 import IProvider from "@/app/interface/IProviders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
-import { IServer, IUser } from "@/app/interface/IUsersConnected";
+import { IServer, IUsersConnected } from "@/app/interface/IUsersConnected";
 import TableC from "@/app/components/_ui/Table/Table";
 import { Stat, StatGroup } from "rsuite";
 import PeoplesIcon from "@rsuite/icons/Peoples";
 import FunnelStepsIcon from "@rsuite/icons/FunnelSteps";
 import { LineChart } from "@mui/x-charts";
+import { getAllClients } from "@/actions/get-all-clients";
+import { getAllHotspots } from "@/actions/get-all-hotspots";
 
 const HomePage = () => {
-  const [providers, setProviders] = useState<IUser[]>([]); // Inicializando o estado como um array vazio
+  const [allClientsConnected, setAllClientsConnected] = useState<
+    IUsersConnected[]
+  >([]);
+  const [allClients, setAllClients] = useState<IUsersConnected[]>([]);
+  const [allProviders, setAllProviders] = useState<IProvider[]>([]);
+  const [allHotspots, setAllHotspots] = useState<any>([]);
 
   useEffect(() => {
-    // Função assíncrona dentro do useEffect para obter os dados dos provedores
     const fetchProviders = async () => {
       try {
-        const providersData = await getAllUsersConnected(); // Chama a função assíncrona para pegar os dados dos provedores
+        const _getAllClientsConnected = await getAllClientsConnected();
+        const _getAllClients = await getAllClients();
+        const _getAllProviders = await getAllProviders();
+        const _getAllHotspots = await getAllHotspots();
+        setAllClients(_getAllClients);
+        setAllProviders(_getAllProviders);
+        setAllHotspots(_getAllHotspots);
 
         // Verifica se o retorno é um array, se não, inicializa providers como array vazio
-        if (Array.isArray(providersData)) {
-          setProviders(providersData); // Atualiza o estado com os dados dos provedores
+        if (Array.isArray(_getAllClientsConnected)) {
+          setAllClientsConnected(_getAllClientsConnected);
         } else {
           console.error("Erro: A resposta da API não é um array");
-          setProviders([]); // Se não for array, define providers como array vazio
+          setAllClientsConnected([]);
         }
       } catch (error) {
         console.error("Erro ao carregar provedores:", error);
-        setProviders([]); // Define providers como array vazio em caso de erro
+        setAllClientsConnected([]);
       }
     };
 
-    fetchProviders(); // Chama a função para buscar os provedores
-  }, []); // O array vazio significa que isso só vai rodar uma vez, quando o componente for montado
-  console.log(providers);
+    fetchProviders();
+  }, []);
+
   return (
     <SideBar>
       <div className="sidebar--container">
@@ -45,7 +57,7 @@ const HomePage = () => {
             bordered
             icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
           >
-            <Stat.Value>21,000</Stat.Value>
+            <Stat.Value>{allClients.length}</Stat.Value>
             <Stat.Label>Total de Clientes</Stat.Label>
           </Stat>
 
@@ -53,7 +65,7 @@ const HomePage = () => {
             bordered
             icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
           >
-            <Stat.Value>21,000</Stat.Value>
+            <Stat.Value>{allClientsConnected.length}</Stat.Value>
             <Stat.Label>Clientes Online</Stat.Label>
           </Stat>
 
@@ -61,7 +73,7 @@ const HomePage = () => {
             bordered
             icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
           >
-            <Stat.Value>21,000</Stat.Value>
+            <Stat.Value>{allProviders.length}</Stat.Value>
             <Stat.Label>Total de Provedores</Stat.Label>
           </Stat>
 
@@ -69,7 +81,7 @@ const HomePage = () => {
             bordered
             icon={<PeoplesIcon color="#2589F5" style={{ fontSize: 30 }} />}
           >
-            <Stat.Value>21,000</Stat.Value>
+            <Stat.Value>{allHotspots.length}</Stat.Value>
             <Stat.Label>Total de Hotspots</Stat.Label>
           </Stat>
         </StatGroup>
@@ -102,7 +114,7 @@ const HomePage = () => {
           />
         </div>
 
-        <TableC dataProps={providers} />
+        <TableC dataProps={allClientsConnected} />
       </div>
     </SideBar>
   );

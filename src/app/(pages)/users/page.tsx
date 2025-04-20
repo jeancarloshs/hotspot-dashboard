@@ -1,35 +1,21 @@
 "use client";
 
-import { getAllProviders } from "@/actions/get-all-provideres";
+import { getAllUsers } from "@/actions/get-all-users";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import IProvider from "@/app/interface/IProviders";
-import { useEffect, useState } from "react";
-// import { Button, ButtonToolbar } from "rsuite";
-import AddOutlineIcon from "@rsuite/icons/AddOutline";
-import GearIcon from "@rsuite/icons/Gear";
-import {
-  Table,
-  Button,
-  Popover,
-  Whisper,
-  Checkbox,
-  Dropdown,
-  IconButton,
-  Progress,
-} from "rsuite";
-import MoreIcon from "@rsuite/icons/legacy/More";
-import PlusRoundIcon from "@rsuite/icons/PlusRound";
-import { mockUsers } from "@/mock";
+import { IUsersConnected } from "@/app/interface/IUsersConnected";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Dropdown, IconButton, Popover, Table, Whisper } from "rsuite";
+import PlusRoundIcon from "@rsuite/icons/PlusRound";
 
-const ProvidersPage = () => {
+const UsersPage = () => {
   const router = useRouter();
   const { Column, HeaderCell, Cell } = Table;
-  const [providers, setProviders] = useState<IProvider[]>([]);
-  // const [providerID, setProviderID] = useState<string | any>(null);
+  const [users, setUsers] = useState<IUsersConnected[]>([]);
   const [error, setError] = useState<any>();
   const [loading, setLoading] = useState<boolean>();
-  let ispID: any;
+  let userID: any;
 
   const renderMenu = (
     { onClose, left, top, className }: any,
@@ -40,13 +26,13 @@ const ProvidersPage = () => {
       console.log(`eventKey ${eventKey}`);
       switch (eventKey) {
         case 1:
-          router.push(`/provider/home/${ispID}`);
+          router.push(`/user/${userID}`);
           break;
         case 2:
-          router.push(`/provider/hotspots/${ispID}`);
+          router.push(`/user/hotspots/${userID}`);
           break;
         case 3:
-          router.push(`/provider/show/${ispID}`);
+          router.push(`/user/show/${userID}`);
           break;
         default:
           console.log("escolha uma opção");
@@ -79,29 +65,26 @@ const ProvidersPage = () => {
   };
 
   useEffect(() => {
-    const fetchProviders = async () => {
+    const getUsers = async () => {
       try {
-        const _getAllProviders = await getAllProviders();
-        setProviders(_getAllProviders);
+        const _getAllUsers = await getAllUsers();
+        if (Array.isArray(_getAllUsers)) {
+          setUsers(_getAllUsers);
+        } else {
+          console.error("Erro: A resposta da API não é um array");
+          setUsers([]);
+        }
       } catch (error) {
         setError("Erro ao carregar os provedores");
       } finally {
         setLoading(false);
       }
     };
-    fetchProviders();
+    getUsers();
   }, []);
-  // console.log(providers);
-
-  // if (loading) return <p>Carregando...</p>;
-  // if (error) return <p>{error}</p>;
-
-  // if (!providers || providers.length === 0) {
-  //   return <p>Nenhum provedor encontrado.</p>;
-  // }
 
   const handleInsert = () => {
-    router.push("/provider/insert");
+    router.push("/user/insert");
   };
 
   return (
@@ -112,42 +95,32 @@ const ProvidersPage = () => {
         </div>
         <Table
           height={600}
-          data={providers}
-          onRowClick={(rowData: IProvider) => {
-            ispID = rowData.id;
+          data={users}
+          onRowClick={(rowData: IUsersConnected) => {
+            userID = rowData.id;
             // setProviderID(id)
-            renderMenu({}, ispID);
+            renderMenu({}, userID);
             console.log("rowData", rowData);
           }}
           renderEmpty={() => (
             <div style={{ padding: 20, textAlign: "center" }}>
-              Nenhum Provedor Cadastrado
+              Nenhum Usuário Cadastrado
             </div>
           )}
         >
-          <Column width={60} align="center" fixed>
+          <Column width={100} align="center" fixed>
             <HeaderCell>Id</HeaderCell>
             <Cell dataKey="id" />
           </Column>
 
-          <Column width={200}>
-            <HeaderCell>Provedor</HeaderCell>
-            <Cell dataKey="nome" />
+          <Column width={300}>
+            <HeaderCell>Nome</HeaderCell>
+            <Cell dataKey="name" />
           </Column>
 
-          <Column width={200}>
-            <HeaderCell>Razão Social</HeaderCell>
-            <Cell dataKey="razao_social" />
-          </Column>
-
-          <Column width={200}>
-            <HeaderCell>CNPJ</HeaderCell>
-            <Cell dataKey="cnpj" />
-          </Column>
-
-          <Column width={200}>
-            <HeaderCell>Cidade</HeaderCell>
-            <Cell dataKey="cidade" />
+          <Column width={300}>
+            <HeaderCell>E-mail</HeaderCell>
+            <Cell dataKey="email" />
           </Column>
 
           <Column width={200}>
@@ -165,4 +138,4 @@ const ProvidersPage = () => {
   );
 };
 
-export default ProvidersPage;
+export default UsersPage;
