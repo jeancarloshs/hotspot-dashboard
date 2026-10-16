@@ -285,16 +285,18 @@ const HotspotEditPage = ({ params }: { params: Promise<{ slug: string[] }> }) =>
               {EDITOR_GROUPS.map((group) => (
                 <div className="tool-group" key={group}>
                   <p>{group}</p>
-                  {EDITORS.filter((item) => item.group === group).map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={editor.id === item.id ? "tool-btn is-active" : "tool-btn"}
-                      onClick={() => chooseEditor(item.id)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                  <div className="tool-group__items">
+                    {EDITORS.filter((item) => item.group === group).map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={editor.id === item.id ? "tool-btn is-active" : "tool-btn"}
+                        onClick={() => chooseEditor(item.id)}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ))}
               <p className="edit-note">{editor.hint}</p>

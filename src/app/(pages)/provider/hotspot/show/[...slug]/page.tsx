@@ -261,25 +261,27 @@ const HotspotPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
               {GROUPS.map((group) => (
                 <div className="tool-group" key={group.label}>
                   <p>{group.label}</p>
-                  {group.tools.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={tool === item.id ? "tool-btn is-active" : "tool-btn"}
-                      disabled={!hotspot.ip || loading}
-                      onClick={() => {
-                        if (item.id === "ping" || item.id === "tracert") {
-                          setTool(item.id);
-                          setError("");
-                          setConfirmReboot(false);
-                          return;
-                        }
-                        run(item.id);
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                  <div className="tool-group__items">
+                    {group.tools.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={tool === item.id ? "tool-btn is-active" : "tool-btn"}
+                        disabled={!hotspot.ip || loading}
+                        onClick={() => {
+                          if (item.id === "ping" || item.id === "tracert") {
+                            setTool(item.id);
+                            setError("");
+                            setConfirmReboot(false);
+                            return;
+                          }
+                          run(item.id);
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ))}
 
