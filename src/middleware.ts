@@ -23,6 +23,8 @@ export async function middleware(request: NextRequest) {
     "/voucher",
     "/payment-gateways",
     "/payment-gateway",
+    "/orders",
+    "/order",
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
@@ -51,5 +53,7 @@ export const config = {
     "/voucher/:path*",
     "/payment-gateways/:path*",
     "/payment-gateway/:path*",
+    "/orders/:path*",
+    "/order/:path*",
   ],
 };

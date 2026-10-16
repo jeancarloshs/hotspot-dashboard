@@ -53,6 +53,9 @@ const PaymentGatewaysPage = () => {
             placeholder="Buscar gateway"
             aria-label="Buscar gateway"
           />
+          <button type="button" className="btn" onClick={() => router.push("/orders")}>
+            Pedidos
+          </button>
           <button type="button" className="btn btn--solid" onClick={() => router.push("/payment-gateway/insert")}>
             Novo gateway
           </button>

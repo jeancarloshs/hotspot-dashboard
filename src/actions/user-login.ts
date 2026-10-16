@@ -42,13 +42,23 @@ export async function loginUser(data: FormData | null): Promise<any> {
     const response = await axios.request(reqOptions);
 
     if (response.status === 200) {
-      cookieStore.set("token", response.data.objAuth.token, {
-        httpOnly: true, // Não acessível via JavaScript (protege contra XSS)
-        secure: process.env.NEXT_PUBLIC_DEBUG === "production", // Garante que o cookie seja seguro apenas em produção
-        maxAge: 24 * 60 * 60, // 1 dia de expiração
-        sameSite: "strict", // Protege contra ataques CSRF
-        path: '/',  // Torna o cookie acessível globalmente no domínio
+      const auth = response.data?.objAuth ?? {};
+      cookieStore.set("token", auth.token, {
+        httpOnly: true,
+        secure: process.env.NEXT_PUBLIC_DEBUG === "production",
+        maxAge: 24 * 60 * 60,
+        sameSite: "strict",
+        path: "/",
       });
+      if (typeof auth.refreshToken === "string" && auth.refreshToken) {
+        cookieStore.set("refreshToken", auth.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NEXT_PUBLIC_DEBUG === "production",
+          maxAge: 7 * 24 * 60 * 60,
+          sameSite: "strict",
+          path: "/",
+        });
+      }
     }
 
     return {

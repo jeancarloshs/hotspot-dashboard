@@ -14,6 +14,7 @@ import {
   MdOutlineConfirmationNumber,
   MdOutlineSell,
   MdOutlinePayments,
+  MdOutlineReceiptLong,
 } from "react-icons/md";
 import { TbLogout2, TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
 
@@ -28,6 +29,7 @@ const NAV = [
   { href: "/plans", label: "Planos", icon: MdOutlineSell },
   { href: "/vouchers", label: "Vouchers", icon: MdOutlineConfirmationNumber },
   { href: "/payment-gateways", label: "Pagamentos", icon: MdOutlinePayments },
+  { href: "/orders", label: "Pedidos", icon: MdOutlineReceiptLong },
   { href: "/clients", label: "Clientes", icon: MdPeopleOutline },
   { href: "/device/insert", label: "Dispositivos", icon: MdOutlineDevices },
   { href: "/users", label: "Usuários", icon: MdAdminPanelSettings },
@@ -49,6 +51,10 @@ function chromeFor(pathname: string) {
     { test: "/payment-gateway/insert", eyebrow: "Pagamentos", title: "Novo gateway", blurb: "Credenciais e webhook do provedor de pagamento." },
     { test: "/payment-gateway/show", eyebrow: "Pagamentos", title: "Editar gateway", blurb: "Atualização e exclusão do gateway." },
     { test: "/payment-gateways", eyebrow: "Acesso", title: "Pagamentos", blurb: "Gateways usados na cobrança de planos e vouchers." },
+    { test: "/order/checkout", eyebrow: "Pedidos", title: "Checkout", blurb: "Cria um pedido pendente com plano e gateway." },
+    { test: "/order/status", eyebrow: "Pedidos", title: "Consultar pedido", blurb: "Status público pelo número do pedido." },
+    { test: "/order/show", eyebrow: "Pedidos", title: "Pedido", blurb: "Detalhes, voucher e simulação sandbox." },
+    { test: "/orders", eyebrow: "Acesso", title: "Pedidos", blurb: "Pedidos de pagamento e emissão de vouchers." },
     { test: "/provider/hotspots", eyebrow: "Provedores", title: "Hotspots do provedor", blurb: "Pontos de acesso vinculados a este provedor." },
     { test: "/provider/insert", eyebrow: "Provedores", title: "Novo provedor", blurb: "Nome, documento e endereço do provedor." },
     { test: "/provider/show", eyebrow: "Provedores", title: "Editar provedor", blurb: "Atualize o cadastro do provedor." },
@@ -83,6 +89,7 @@ function isActive(href: string, pathname: string) {
   if (href === "/plans") return pathname.startsWith("/plan");
   if (href === "/vouchers") return pathname.startsWith("/voucher");
   if (href === "/payment-gateways") return pathname.startsWith("/payment-gateway");
+  if (href === "/orders") return pathname.startsWith("/order");
   if (href === "/clients") return pathname.startsWith("/client");
   if (href === "/users") return pathname.startsWith("/user");
   return pathname === href || pathname.startsWith(`${href}/`);

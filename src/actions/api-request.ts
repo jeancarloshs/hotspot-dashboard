@@ -1,6 +1,7 @@
 "use server";
 
 import ProdConfig from "@/app/api/config/prod_config";
+import { refreshAccessToken } from "@/actions/refresh-token";
 import axios from "axios";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -13,6 +14,7 @@ export type ApiResult = {
 async function clearSession() {
   const cookieStore = await cookies();
   cookieStore.delete("token");
+  cookieStore.delete("refreshToken");
 }
 
 export async function apiRequest(options: {
@@ -20,6 +22,7 @@ export async function apiRequest(options: {
   method: "GET" | "POST" | "PUT" | "DELETE";
   data?: unknown;
   auth?: boolean;
+  _retried?: boolean;
 }): Promise<ApiResult> {
   const environment = new ProdConfig();
   const headers: Record<string, string> = {
@@ -46,6 +49,14 @@ export async function apiRequest(options: {
     return { status: response.status, data: response.data };
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401 && options.auth !== false && !options._retried) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed.ok) {
+          return apiRequest({ ...options, _retried: true });
+        }
+        await clearSession();
+        redirect("/");
+      }
       if (error.response?.status === 401 && options.auth !== false) {
         await clearSession();
         redirect("/");
