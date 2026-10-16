@@ -25,6 +25,9 @@ type HotspotForm = {
   bairro: string;
   cidade: string;
   estado: string;
+  mk_user: string;
+  mk_password: string;
+  mk_api_port: string;
 };
 
 const emptyHotspot = (): HotspotForm => ({
@@ -39,6 +42,9 @@ const emptyHotspot = (): HotspotForm => ({
   bairro: "",
   cidade: "",
   estado: "",
+  mk_user: "",
+  mk_password: "",
+  mk_api_port: "",
 });
 
 function digits(value: string) {
@@ -109,6 +115,11 @@ const HotspotCadastroPage = ({ params }: { params: Promise<{ slug: string[] }> }
         bairro: String(hotspot.bairro || ""),
         cidade: String(hotspot.cidade || ""),
         estado: String(hotspot.estado || ""),
+        mk_user: String(hotspot.mk_user || ""),
+        mk_password: "",
+        mk_api_port: hotspot.mk_api_port != null && hotspot.mk_api_port !== ""
+          ? String(hotspot.mk_api_port)
+          : "",
       });
     };
     load();
@@ -144,6 +155,9 @@ const HotspotCadastroPage = ({ params }: { params: Promise<{ slug: string[] }> }
       bairro: formData.bairro,
       cidade: formData.cidade,
       estado: formData.estado,
+      mk_user: formData.mk_user,
+      mk_password: formData.mk_password || undefined,
+      mk_api_port: formData.mk_api_port ? Number(formData.mk_api_port) : null,
     });
 
     if (response.status === 200) {
@@ -178,7 +192,7 @@ const HotspotCadastroPage = ({ params }: { params: Promise<{ slug: string[] }> }
     <SideBar>
       <section className="panel">
         <form className="edit-form edit-form--wide tool-board" onSubmit={handleSubmit}>
-          <p className="edit-note form-full">Atualiza o cadastro do ponto de acesso. A configuração do MikroTik fica na tela de edição.</p>
+          <p className="edit-note form-full">Atualiza o cadastro do ponto de acesso, inclusive as credenciais da API RouterOS. A senha não é devolvida pela API — preencha só se quiser trocar. A configuração no equipamento fica na tela de edição.</p>
 
           <h2 className="form-span">Ponto de acesso</h2>
           <label>Nome<input value={formData.nome} onChange={(event) => setField("nome", event.target.value)} required /></label>
@@ -198,6 +212,11 @@ const HotspotCadastroPage = ({ params }: { params: Promise<{ slug: string[] }> }
               {STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
             </select>
           </label>
+
+          <h2 className="form-span">API MikroTik</h2>
+          <label>Usuário API<input value={formData.mk_user} onChange={(event) => setField("mk_user", event.target.value)} placeholder="admin" autoComplete="off" /></label>
+          <label>Senha API<input type="password" value={formData.mk_password} onChange={(event) => setField("mk_password", event.target.value)} placeholder="Deixe em branco para manter" autoComplete="new-password" /></label>
+          <label>Porta API<input value={formData.mk_api_port} onChange={(event) => setField("mk_api_port", event.target.value)} placeholder="8728" inputMode="numeric" /></label>
 
           <h2 className="form-span">Endereço</h2>
           <label>CEP<input value={formatCEP(formData.cep)} onChange={(event) => setField("cep", event.target.value)} onBlur={handleCepBlur} inputMode="numeric" /></label>

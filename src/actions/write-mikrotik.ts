@@ -38,6 +38,7 @@ type LoginCommand = {
   name: string;
   password: string;
   userIp: string;
+  hsID: number;
 };
 
 export type MikrotikWrite = UserCommand | ProfileCommand | DefaultCommand | LoginCommand;
@@ -145,6 +146,9 @@ function payloadFor(command: MikrotikWrite, ip: string) {
   if (!text(command.name) || !command.password || !dottedIp(command.userIp)) {
     return { error: "Informe usuário, senha e o IP do dispositivo." };
   }
+  if (!Number.isInteger(command.hsID) || command.hsID <= 0) {
+    return { error: "Hotspot inválido para autenticação." };
+  }
   return {
     path: "/mikrotik/hotspot/user/login",
     body: {
@@ -152,6 +156,7 @@ function payloadFor(command: MikrotikWrite, ip: string) {
       name: text(command.name),
       password: command.password,
       userIp: dottedIp(command.userIp),
+      hsID: command.hsID,
     },
   };
 }

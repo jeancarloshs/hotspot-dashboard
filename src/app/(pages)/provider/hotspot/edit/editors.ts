@@ -263,7 +263,7 @@ export const EDITORS: EditorSpec[] = [
     id: "login",
     group: "Hotspot",
     label: "Autenticar",
-    hint: "Entra com um usuário já cadastrado a partir do IP do dispositivo.",
+    hint: "Entra com um usuário já cadastrado a partir do IP do dispositivo. O hsID deste hotspot é enviado automaticamente e precisa bater com o IP cadastrado.",
     mode: "legacy",
     action: "login",
     fields: fields(["name", "password", "userIp"], ["name", "password", "userIp"]),

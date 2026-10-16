@@ -23,6 +23,9 @@ type HotspotForm = {
   bairro: string;
   cidade: string;
   estado: string;
+  mk_user: string;
+  mk_password: string;
+  mk_api_port: string;
 };
 
 const emptyHotspot = (): HotspotForm => ({
@@ -37,6 +40,9 @@ const emptyHotspot = (): HotspotForm => ({
   bairro: "",
   cidade: "",
   estado: "",
+  mk_user: "",
+  mk_password: "",
+  mk_api_port: "8728",
 });
 
 function digits(value: string) {
@@ -102,6 +108,9 @@ const InsertHotspotPage = () => {
       bairro: formData.bairro,
       cidade: formData.cidade,
       estado: formData.estado,
+      mk_user: formData.mk_user,
+      mk_password: formData.mk_password,
+      mk_api_port: formData.mk_api_port ? Number(formData.mk_api_port) : null,
     });
 
     if (response.status === 201) {
@@ -116,7 +125,7 @@ const InsertHotspotPage = () => {
     <SideBar>
       <section className="panel">
         <form className="edit-form edit-form--wide tool-board" onSubmit={handleSubmit}>
-          <p className="edit-note form-full">O IP é o endereço real do MikroTik, com pontos. O CEP preenche o endereço.</p>
+          <p className="edit-note form-full">O IP é o endereço real do MikroTik, com pontos. Informe também o usuário e a senha da API RouterOS usados pelo cron e pelas rotas MikroTik.</p>
 
           <h2 className="form-span">Ponto de acesso</h2>
           <label>Nome<input value={formData.nome} onChange={(event) => setField("nome", event.target.value)} required /></label>
@@ -136,6 +145,11 @@ const InsertHotspotPage = () => {
               {STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
             </select>
           </label>
+
+          <h2 className="form-span">API MikroTik</h2>
+          <label>Usuário API<input value={formData.mk_user} onChange={(event) => setField("mk_user", event.target.value)} placeholder="admin" required autoComplete="off" /></label>
+          <label>Senha API<input type="password" value={formData.mk_password} onChange={(event) => setField("mk_password", event.target.value)} required autoComplete="new-password" /></label>
+          <label>Porta API<input value={formData.mk_api_port} onChange={(event) => setField("mk_api_port", event.target.value)} placeholder="8728" inputMode="numeric" /></label>
 
           <h2 className="form-span">Endereço</h2>
           <label>CEP<input value={formatCEP(formData.cep)} onChange={(event) => setField("cep", event.target.value)} onBlur={handleCepBlur} inputMode="numeric" /></label>

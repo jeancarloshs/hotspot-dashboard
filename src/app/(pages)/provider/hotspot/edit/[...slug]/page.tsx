@@ -246,6 +246,7 @@ const HotspotEditPage = ({ params }: { params: Promise<{ slug: string[] }> }) =>
                     name: value("name"),
                     password: value("password"),
                     userIp: value("userIp"),
+                    hsID: Number(hotspot.id),
                   }
         )
       : await configureMikrotik({

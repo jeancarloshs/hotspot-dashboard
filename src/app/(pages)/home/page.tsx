@@ -8,7 +8,7 @@ import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
 import IProvider from "@/app/interface/IProviders";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type HotspotRow = {
   id?: number;
@@ -24,6 +24,7 @@ type SessionRow = {
   email: string;
   ip: string;
   hotspot: string;
+  hotspotId?: number;
   uptime: string;
 };
 
@@ -33,15 +34,34 @@ function flattenSessions(value: unknown): SessionRow[] {
     const server = item.server ?? item;
     const nome = user?.nome_completo || user?.name || user?.email;
     if (!nome && !server?.address) return [];
+    const hotspot = server?.hotspot ?? user?.hotspot;
+    const hotspotId = typeof hotspot?.id === "number"
+      ? hotspot.id
+      : typeof server?.hsID === "number"
+        ? server.hsID
+        : typeof user?.hsID === "number"
+          ? user.hsID
+          : undefined;
     return [{
       id: String(user?.id ?? server?.id ?? index),
       nome: nome || "Sessão",
       email: user?.email || "—",
       ip: server?.address || user?.ip_local || "—",
-      hotspot: server?.hotspot?.nome || user?.hotspot?.nome || "—",
+      hotspot: hotspot?.nome || "—",
+      hotspotId,
       uptime: server?.uptime || "—",
     }];
   });
+}
+
+function connectedCountFor(hotspot: HotspotRow, sessions: SessionRow[]) {
+  return sessions.filter((session) => {
+    if (hotspot.id != null && session.hotspotId != null) return session.hotspotId === hotspot.id;
+    if (hotspot.nome && session.hotspot !== "—") {
+      return session.hotspot.toLowerCase() === hotspot.nome.toLowerCase();
+    }
+    return false;
+  }).length;
 }
 
 const HomePage = () => {
@@ -66,6 +86,14 @@ const HomePage = () => {
 
     load();
   }, []);
+
+  const hotspotRows = useMemo(
+    () => hotspots.slice(0, 5).map((hotspot) => ({
+      ...hotspot,
+      connected: connectedCountFor(hotspot, sessions),
+    })),
+    [hotspots, sessions]
+  );
 
   return (
     <SideBar>
@@ -139,11 +167,12 @@ const HomePage = () => {
           </div>
           <ResourceTable
             bare
-            rows={hotspots.slice(0, 5)}
+            rows={hotspotRows}
             empty="Nenhum hotspot cadastrado."
             rowKey={(row, index) => row.id ?? index}
             columns={[
               { key: "nome", header: "Nome", render: (row) => (<><span className="cell-title">{row.nome || "—"}</span><span className="cell-sub">{row.ip || row.cidade || ""}</span></>) },
+              { key: "connected", header: "Conectados", render: (row) => row.connected, align: "right" },
               { key: "status", header: "Status", render: (row) => <StatusPill value={row.status} />, align: "right" },
             ]}
           />

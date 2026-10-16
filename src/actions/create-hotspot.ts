@@ -49,6 +49,9 @@ export async function createHotspot(formData: HotspotInput) {
         ip: formData.ip || null,
         status: formData.status || null,
         ispID: formData.ispID || null,
+        mk_user: formData.mk_user || null,
+        mk_password: formData.mk_password || null,
+        mk_api_port: formData.mk_api_port ?? null,
       },
     });
     return { response: response.data, status: response.status };
