@@ -11,7 +11,7 @@ export function asList<T>(value: unknown): T[] {
   if (Array.isArray(value)) return value as T[];
   if (value && typeof value === "object") {
     const record = value as Record<string, unknown>;
-    for (const key of ["data", "users", "clients", "hotspots", "providers"]) {
+    for (const key of ["data", "users", "clients", "hotspots", "providers", "plans", "vouchers", "paymentGateways", "gateways"]) {
       if (Array.isArray(record[key])) return record[key] as T[];
     }
   }

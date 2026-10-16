@@ -48,7 +48,9 @@ textarea {
   font: inherit;
 }
 
-a {
+a,
+a:visited,
+a:active {
   color: inherit;
   text-decoration: none;
 }
@@ -134,7 +136,9 @@ a {
   gap: 4px;
 }
 
-.app-link {
+.app-link,
+.app-link:visited,
+.app-link:active {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -153,7 +157,9 @@ a {
   color: #fff;
 }
 
-.app-link.is-active {
+.app-link.is-active,
+.app-link.is-active:visited,
+.app-link.is-active:active {
   background: #24302a;
   color: #fff;
   box-shadow: inset 2px 0 0 var(--brass);
@@ -295,6 +301,34 @@ a {
   color: #9aa098;
 }
 
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: -4px 0 16px;
+}
+
+.filter-bar label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: min(180px, 100%);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 560;
+}
+
+.filter-bar select {
+  height: 42px;
+  min-width: 180px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font-weight: 450;
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -424,7 +458,11 @@ a {
 }
 
 .row-links a,
-.text-link {
+.row-links a:visited,
+.row-links a:active,
+.text-link,
+.text-link:visited,
+.text-link:active {
   color: var(--moss);
   font-size: 13px;
   font-weight: 560;
@@ -432,6 +470,7 @@ a {
 
 .row-links a:hover,
 .text-link:hover {
+  color: var(--moss);
   text-decoration: underline;
 }
 
@@ -475,6 +514,8 @@ a {
 }
 
 .btn,
+.btn:visited,
+.btn:active,
 .btn-container .rs-btn {
   display: inline-flex;
   align-items: center;
@@ -500,6 +541,8 @@ a {
 }
 
 .btn--solid,
+.btn--solid:visited,
+.btn--solid:active,
 .btn-container .rs-btn-primary {
   border-color: var(--ink);
   background: var(--ink);
@@ -509,9 +552,12 @@ a {
 .btn--solid:hover,
 .btn-container .rs-btn-primary:hover {
   background: #24302a;
+  color: #f7f4ee;
 }
 
-.btn--danger {
+.btn--danger,
+.btn--danger:visited,
+.btn--danger:active {
   border-color: #e3c8c4;
   background: var(--bad-bg);
   color: var(--bad);
@@ -519,6 +565,7 @@ a {
 
 .btn--danger:hover {
   background: #f3ddd9;
+  color: var(--bad);
 }
 
 .btn:disabled,
@@ -757,10 +804,19 @@ a {
   border-top: 1px solid var(--line);
 }
 
+.mikrotik-result .data-table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.mikrotik-result th,
 .mikrotik-result td {
-  max-width: 420px;
-  white-space: normal;
-  word-break: break-word;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.mikrotik-result td {
+  max-width: none;
 }
 
 .confirm-reboot {

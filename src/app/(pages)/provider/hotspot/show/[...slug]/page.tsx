@@ -41,9 +41,16 @@ const GROUPS: { label: string; tools: { id: MikrotikTool; label: string }[] }[] 
     tools: [
       { id: "interfaces", label: "Interfaces" },
       { id: "ethernet", label: "Ethernet" },
+      { id: "bridges", label: "Bridges" },
+      { id: "bridgePorts", label: "Bridge ports" },
       { id: "vlans", label: "VLANs" },
       { id: "routes", label: "Rotas" },
-      { id: "leases", label: "DHCP" },
+      { id: "addresses", label: "IP address" },
+      { id: "pools", label: "IP pool" },
+      { id: "leases", label: "DHCP leases" },
+      { id: "networks", label: "DHCP networks" },
+      { id: "dhcpServers", label: "DHCP servers" },
+      { id: "queues", label: "Queues" },
       { id: "vpn", label: "L2TP / IPsec" },
     ],
   },
@@ -54,6 +61,12 @@ const GROUPS: { label: string; tools: { id: MikrotikTool; label: string }[] }[] 
       { id: "nat", label: "NAT" },
       { id: "mangle", label: "Mangle" },
       { id: "raw", label: "Raw" },
+    ],
+  },
+  {
+    label: "Sistema",
+    tools: [
+      { id: "files", label: "Arquivos" },
     ],
   },
   {
@@ -237,7 +250,10 @@ const HotspotPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
 
           <div className="page-toolbar">
             <p className="page-lead">As consultas leem o equipamento. A edição altera hotspot, rede, firewall e VPN neste MikroTik.</p>
-            <Link className="btn btn--solid" href={`/provider/hotspot/edit/${id}`}>Editar MikroTik</Link>
+            <div className="toolbar-actions">
+              <Link className="btn" href={`/provider/hotspot/cadastro/${id}`}>Cadastro</Link>
+              <Link className="btn btn--solid" href={`/provider/hotspot/edit/${id}`}>Editar MikroTik</Link>
+            </div>
           </div>
 
           <section className="panel">

@@ -3,6 +3,7 @@
 import ProdConfig from "@/app/api/config/prod_config";
 import axios from "axios";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 type UserCommand = {
   action: "user";
@@ -46,9 +47,20 @@ const CONFIG_RESOURCES = new Set([
   "{ip}/interfaces",
   "{ip}/interfaces/ethernet",
   "{ip}/interfaces/bridge",
+  "{ip}/interfaces/bridge/port",
+  "{ip}/files",
+  "{ip}/backup",
+  "{ip}/backup/restore",
+  "{ip}/export",
   "{ip}/routes",
   "{ip}/dhcp/leases",
+  "{ip}/dhcp/networks",
+  "{ip}/dhcp/servers",
+  "{ip}/ip/address",
+  "{ip}/ip/pool",
+  "{ip}/queues/simple",
   "hotspot/{ip}/users",
+  "hotspot/{ip}/users/active",
   "{ip}/hotspot/profiles",
   "{ip}/hotspot",
   "{ip}/firewall/filter",
@@ -60,9 +72,11 @@ const CONFIG_RESOURCES = new Set([
   "{ip}/ipsec/policies",
 ]);
 
+const BOOLEAN_KEYS = new Set(["compact", "hideSensitive", "verbose"]);
+
 export type MikrotikConfig = {
   ip: string;
-  method: "POST" | "PUT";
+  method: "POST" | "PUT" | "DELETE";
   resource: string;
   body: Record<string, string>;
   required: string[];
@@ -156,10 +170,13 @@ function failure(error: unknown) {
   return { error: "Não foi possível alterar o MikroTik." };
 }
 
-async function send(method: "POST" | "PUT", path: string, body: unknown): Promise<{ message?: string; error?: string }> {
+async function send(method: "POST" | "PUT" | "DELETE", path: string, body: unknown): Promise<{ message?: string; error?: string }> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
-  if (!token) return { error: "Sessão expirada." };
+  if (!token) {
+    cookieStore.delete("token");
+    redirect("/");
+  }
 
   const _environment = new ProdConfig();
 
@@ -180,6 +197,10 @@ async function send(method: "POST" | "PUT", path: string, body: unknown): Promis
       : "Alteração enviada ao MikroTik.";
     return { message };
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      cookieStore.delete("token");
+      redirect("/");
+    }
     return failure(error);
   }
 }
@@ -196,21 +217,34 @@ export async function writeMikrotik(command: MikrotikWrite): Promise<{ message?:
 export async function configureMikrotik(input: MikrotikConfig): Promise<{ message?: string; error?: string }> {
   const ip = dottedIp(input.ip);
   if (!ip) return { error: "IP do MikroTik inválido." };
-  if ((input.method !== "POST" && input.method !== "PUT") || !CONFIG_RESOURCES.has(input.resource)) {
+  if (
+    (input.method !== "POST" && input.method !== "PUT" && input.method !== "DELETE")
+    || !CONFIG_RESOURCES.has(input.resource)
+  ) {
     return { error: "Esta alteração não está disponível." };
   }
 
-  const body: Record<string, string> = {};
+  const body: Record<string, string | boolean> = {};
   for (const [key, value] of Object.entries(input.body || {})) {
     if (!/^[A-Za-z][A-Za-z0-9]*$/.test(key)) continue;
     const trimmed = typeof value === "string" ? value.trim() : "";
-    if (trimmed) body[key] = trimmed;
+    if (!trimmed) continue;
+    if (BOOLEAN_KEYS.has(key)) {
+      if (trimmed === "true" || trimmed === "yes") body[key] = true;
+      else if (trimmed === "false" || trimmed === "no") body[key] = false;
+      continue;
+    }
+    body[key] = trimmed;
   }
 
   for (const key of input.required) {
-    if (!body[key]) return { error: "Preencha os campos obrigatórios." };
+    if (body[key] == null || body[key] === "") return { error: "Preencha os campos obrigatórios." };
   }
-  if (Object.keys(body).length === 0 || (body.id && Object.keys(body).length === 1)) {
+  const allowEmpty = input.method === "POST" && input.resource === "{ip}/export";
+  if (!allowEmpty && Object.keys(body).length === 0) {
+    return { error: "Informe ao menos um campo para alterar." };
+  }
+  if (input.method !== "DELETE" && body.id && Object.keys(body).length === 1) {
     return { error: "Informe ao menos um campo para alterar." };
   }
 

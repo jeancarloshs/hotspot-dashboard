@@ -55,9 +55,17 @@ export async function loginUser(data: FormData | null): Promise<any> {
       data: response.data,
       status: response.status
     }
-  } catch (error: any) {
-    if (error.response.status === 401) {
-      throw new Error("Usuário ou senha inválidos.");
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const payload = error.response?.data;
+      const message = typeof payload === "string"
+        ? payload
+        : payload?.message || payload?.error || "Não foi possível entrar.";
+      return {
+        status: error.response?.status || 500,
+        error: message,
+      };
     }
+    return { status: 500, error: "Não foi possível entrar." };
   }
 }

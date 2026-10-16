@@ -16,6 +16,10 @@ export type HotspotInput = {
   ip?: string;
   status?: string;
   ispID?: number | null;
+  slug?: string;
+  mk_user?: string;
+  mk_password?: string;
+  mk_api_port?: number | null;
 };
 
 export async function createHotspot(formData: HotspotInput) {

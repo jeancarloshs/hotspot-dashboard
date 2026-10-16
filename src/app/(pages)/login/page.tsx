@@ -19,6 +19,11 @@ const LoginPage = () => {
 
     try {
       const response = await loginUser(formData);
+      if (response?.error) {
+        setError(String(response.error));
+        setIsPending(false);
+        return;
+      }
       const auth = response?.data?.objAuth;
       if (auth?.permission === Roles.SUPER_ADMIN) {
         router.push("/home");
@@ -26,9 +31,8 @@ const LoginPage = () => {
       }
       setError(auth?.token ? "Esta conta não tem permissão para o painel." : "E-mail ou senha inválidos.");
       setIsPending(false);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "";
-      setError(message.includes("401") ? "E-mail ou senha inválidos." : "Não foi possível entrar agora.");
+    } catch {
+      setError("Não foi possível entrar agora.");
       setIsPending(false);
     }
   };

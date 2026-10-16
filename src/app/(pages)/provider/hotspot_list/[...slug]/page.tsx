@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getAllHotspots } from "@/actions/get-all-hotspots";
+import { getAllHotspotsProvider } from "@/actions/get-all-hotspots-provider";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { IHotspot } from "@/app/interface/IUsersConnected";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ import {
 } from "rsuite";
 import PlusRoundIcon from "@rsuite/icons/PlusRound";
 import IProvider from "@/app/interface/IProviders";
-import { StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { asList, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
 
 const HotspotsPage = ({ params }: any) => {
   const router = useRouter();
@@ -79,17 +79,17 @@ const HotspotsPage = ({ params }: any) => {
 
   useEffect(() => {
     const fetchHotspots = async () => {
-      const _getAllHotspots = await getAllHotspots(slug);
       try {
-        setAllHotspots(_getAllHotspots);
-      } catch (error) {
+        const response = await getAllHotspotsProvider(slug);
+        setAllHotspots(asList<IHotspot>(response));
+      } catch {
         setError("Erro ao carregar os hotspots");
       } finally {
         setLoading(false);
       }
     };
     fetchHotspots();
-  }, []);
+  }, [slug]);
 
   const handleInsert = () => {
     router.push("/hotspot_list");

@@ -3,11 +3,17 @@
 import ProdConfig from "@/app/api/config/prod_config";
 import axios from "axios";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export type ApiResult = {
   status: number;
   data: unknown;
 };
+
+async function clearSession() {
+  const cookieStore = await cookies();
+  cookieStore.delete("token");
+}
 
 export async function apiRequest(options: {
   path: string;
@@ -23,7 +29,10 @@ export async function apiRequest(options: {
 
   if (options.auth !== false) {
     const token = (await cookies()).get("token")?.value;
-    if (!token) return { status: 401, data: { message: "Sessão expirada." } };
+    if (!token) {
+      await clearSession();
+      redirect("/");
+    }
     headers.Authorization = `Bearer ${token}`;
   }
 
@@ -37,6 +46,10 @@ export async function apiRequest(options: {
     return { status: response.status, data: response.data };
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401 && options.auth !== false) {
+        await clearSession();
+        redirect("/");
+      }
       return {
         status: error.response?.status || 500,
         data: error.response?.data || { message: "Não foi possível concluir a operação." },

@@ -102,7 +102,8 @@ const ProviderHotspotsPage = ({ params }: { params: Promise<{ slug: string[] }> 
             render: (row) => (
               <div className="row-links">
                 <Link href={`/provider/hotspot/show/${row.id}`}>Consultar</Link>
-                <Link href={`/provider/hotspot/edit/${row.id}`}>Editar</Link>
+                <Link href={`/provider/hotspot/cadastro/${row.id}`}>Cadastro</Link>
+                <Link href={`/provider/hotspot/edit/${row.id}`}>MikroTik</Link>
               </div>
             ),
           },

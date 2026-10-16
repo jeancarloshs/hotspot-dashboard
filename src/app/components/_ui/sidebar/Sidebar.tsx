@@ -11,6 +11,9 @@ import {
   MdPeopleOutline,
   MdAdminPanelSettings,
   MdOutlineDevices,
+  MdOutlineConfirmationNumber,
+  MdOutlineSell,
+  MdOutlinePayments,
 } from "react-icons/md";
 import { TbLogout2, TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
 
@@ -22,6 +25,9 @@ const NAV = [
   { href: "/home", label: "Visão geral", icon: MdOutlineDashboard },
   { href: "/providers", label: "Provedores", icon: MdOutlineStorefront },
   { href: "/hotspots", label: "Hotspots", icon: MdOutlineRouter },
+  { href: "/plans", label: "Planos", icon: MdOutlineSell },
+  { href: "/vouchers", label: "Vouchers", icon: MdOutlineConfirmationNumber },
+  { href: "/payment-gateways", label: "Pagamentos", icon: MdOutlinePayments },
   { href: "/clients", label: "Clientes", icon: MdPeopleOutline },
   { href: "/device/insert", label: "Dispositivos", icon: MdOutlineDevices },
   { href: "/users", label: "Usuários", icon: MdAdminPanelSettings },
@@ -30,8 +36,19 @@ const NAV = [
 function chromeFor(pathname: string) {
   const rules = [
     { test: "/provider/hotspot/insert", eyebrow: "Hotspots", title: "Novo hotspot", blurb: "Cadastro de um ponto de acesso ligado a um provedor." },
+    { test: "/provider/hotspot/cadastro", eyebrow: "Hotspots", title: "Cadastro do hotspot", blurb: "Atualização e exclusão do ponto de acesso." },
     { test: "/provider/hotspot/edit", eyebrow: "Hotspots", title: "Editar MikroTik", blurb: "Configuração do MikroTik selecionado: hotspot, rede, firewall e VPN." },
     { test: "/provider/hotspot/show", eyebrow: "Hotspots", title: "Hotspot", blurb: "Consulta e gerenciamento do MikroTik deste ponto." },
+    { test: "/plan/insert", eyebrow: "Planos", title: "Novo plano", blurb: "Limites, preço e sync do perfil no MikroTik." },
+    { test: "/plan/show", eyebrow: "Planos", title: "Editar plano", blurb: "Atualização e exclusão do plano de acesso." },
+    { test: "/plans", eyebrow: "Acesso", title: "Planos", blurb: "Planos usados em vouchers e perfis do hotspot." },
+    { test: "/voucher/generate", eyebrow: "Vouchers", title: "Gerar lote", blurb: "Cria códigos a partir de um plano." },
+    { test: "/voucher/redeem", eyebrow: "Vouchers", title: "Resgatar voucher", blurb: "Valida um código em um hotspot." },
+    { test: "/voucher/show", eyebrow: "Vouchers", title: "Voucher", blurb: "Detalhes e exclusão do código." },
+    { test: "/vouchers", eyebrow: "Acesso", title: "Vouchers", blurb: "Lotes de acesso gerados para os hotspots." },
+    { test: "/payment-gateway/insert", eyebrow: "Pagamentos", title: "Novo gateway", blurb: "Credenciais e webhook do provedor de pagamento." },
+    { test: "/payment-gateway/show", eyebrow: "Pagamentos", title: "Editar gateway", blurb: "Atualização e exclusão do gateway." },
+    { test: "/payment-gateways", eyebrow: "Acesso", title: "Pagamentos", blurb: "Gateways usados na cobrança de planos e vouchers." },
     { test: "/provider/hotspots", eyebrow: "Provedores", title: "Hotspots do provedor", blurb: "Pontos de acesso vinculados a este provedor." },
     { test: "/provider/insert", eyebrow: "Provedores", title: "Novo provedor", blurb: "Nome, documento e endereço do provedor." },
     { test: "/provider/show", eyebrow: "Provedores", title: "Editar provedor", blurb: "Atualize o cadastro do provedor." },
@@ -62,7 +79,10 @@ function chromeFor(pathname: string) {
 function isActive(href: string, pathname: string) {
   if (pathname.startsWith("/device")) return href === "/device/insert";
   if (pathname.includes("/hotspot")) return href === "/hotspots";
-  if (href === "/providers") return pathname.startsWith("/provider");
+  if (href === "/providers") return pathname.startsWith("/provider") && !pathname.includes("/hotspot");
+  if (href === "/plans") return pathname.startsWith("/plan");
+  if (href === "/vouchers") return pathname.startsWith("/voucher");
+  if (href === "/payment-gateways") return pathname.startsWith("/payment-gateway");
   if (href === "/clients") return pathname.startsWith("/client");
   if (href === "/users") return pathname.startsWith("/user");
   return pathname === href || pathname.startsWith(`${href}/`);

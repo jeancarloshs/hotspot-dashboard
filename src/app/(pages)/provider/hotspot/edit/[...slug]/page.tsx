@@ -197,7 +197,11 @@ const HotspotEditPage = ({ params }: { params: Promise<{ slug: string[] }> }) =>
       return;
     }
     const filled = editor.fields.filter((field) => values[field.name]?.trim());
-    if (editor.mode === "config" && filled.every((field) => field.name === "id")) {
+    if (
+      editor.mode === "config"
+      && editor.method !== "DELETE"
+      && filled.every((field) => field.name === "id")
+    ) {
       setError("Informe ao menos um campo para alterar.");
       setMessage("");
       return;
@@ -330,8 +334,16 @@ const HotspotEditPage = ({ params }: { params: Promise<{ slug: string[] }> }) =>
                   {message ? <p className="form-success form-full">{message}</p> : null}
 
                   <div className="form-actions">
-                    <button className="btn btn--solid" type="submit" disabled={pending}>
-                      {pending ? "Enviando..." : "Salvar no MikroTik"}
+                    <button
+                      className={editor.mode === "config" && editor.method === "DELETE" ? "btn btn--danger" : "btn btn--solid"}
+                      type="submit"
+                      disabled={pending}
+                    >
+                      {pending
+                        ? "Enviando..."
+                        : editor.mode === "config" && editor.method === "DELETE"
+                          ? "Remover no MikroTik"
+                          : "Salvar no MikroTik"}
                     </button>
                   </div>
                 </form>

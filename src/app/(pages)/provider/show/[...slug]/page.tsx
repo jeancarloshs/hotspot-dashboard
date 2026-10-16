@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteProvider } from "@/actions/delete-provider";
 import { getCep } from "@/actions/get-cep";
 import { getCNPJ } from "@/actions/get-cnpj";
 import { getProvider } from "@/actions/get-provider";
@@ -65,6 +66,8 @@ const ProviderPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const router = useRouter();
   const slug = React.use(params).slug[0];
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [missing, setMissing] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState<IProvider>(emptyProvider);
@@ -140,6 +143,18 @@ const ProviderPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
     setLoading(false);
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError("");
+    const response = await deleteProvider(slug);
+    if (response.status === 200) {
+      router.push("/providers");
+      return;
+    }
+    setError(messageFrom(response.data));
+    setDeleting(false);
+  };
+
   if (missing) {
     return (
       <SideBar>
@@ -181,9 +196,23 @@ const ProviderPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
           <label>Estado<input value={text(formData.estado)} onChange={(event) => setField("estado", event.target.value)} maxLength={2} /></label>
 
           {error ? <p className="error-message form-span">{error}</p> : null}
+          {confirmDelete ? (
+            <div className="confirm-reboot form-full">
+              <p>Excluir este provedor remove o cadastro. Os hotspots vinculados podem ficar sem provedor.</p>
+              <div className="form-actions">
+                <button type="button" className="btn" onClick={() => setConfirmDelete(false)}>Cancelar</button>
+                <button type="button" className="btn btn--danger" onClick={handleDelete} disabled={deleting}>
+                  {deleting ? "Excluindo..." : "Excluir"}
+                </button>
+              </div>
+            </div>
+          ) : null}
           <div className="form-actions">
             <button type="button" className="btn" onClick={() => router.push("/providers")}>Voltar</button>
             <button type="button" className="btn" onClick={() => router.push(`/provider/hotspots/${slug}`)}>Hotspots</button>
+            {confirmDelete ? null : (
+              <button type="button" className="btn btn--danger" onClick={() => setConfirmDelete(true)}>Excluir provedor</button>
+            )}
             <button type="submit" className="btn btn--solid" disabled={loading}>{loading ? "Salvando..." : "Salvar provedor"}</button>
           </div>
         </form>

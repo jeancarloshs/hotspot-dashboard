@@ -83,6 +83,7 @@ const HotspotsPage = () => {
             render: (row) => (
               <div className="row-links">
                 {row.isp?.id ? <Link href={`/provider/hotspots/${row.isp.id}`}>Do provedor</Link> : null}
+                <Link href={`/provider/hotspot/cadastro/${row.id}`}>Cadastro</Link>
                 <Link href={`/provider/hotspot/show/${row.id}`}>Abrir</Link>
               </div>
             ),

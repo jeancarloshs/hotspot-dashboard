@@ -3,6 +3,7 @@
 import ProdConfig from "@/app/api/config/prod_config";
 import axios from "axios";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const TOOLS = {
   resource: (ip: string) => `${ip}/resource`,
@@ -14,9 +15,17 @@ const TOOLS = {
   servers: (ip: string) => `${ip}/hotspot`,
   interfaces: (ip: string) => `${ip}/interfaces`,
   ethernet: (ip: string) => `${ip}/interfaces/ethernet`,
+  bridges: (ip: string) => `${ip}/interfaces/bridge`,
+  bridgePorts: (ip: string) => `${ip}/interfaces/bridge/port`,
   vlans: (ip: string) => `${ip}/vlans`,
   routes: (ip: string) => `${ip}/routes`,
   leases: (ip: string) => `${ip}/dhcp/leases`,
+  networks: (ip: string) => `${ip}/dhcp/networks`,
+  dhcpServers: (ip: string) => `${ip}/dhcp/servers`,
+  addresses: (ip: string) => `${ip}/ip/address`,
+  pools: (ip: string) => `${ip}/ip/pool`,
+  queues: (ip: string) => `${ip}/queues/simple`,
+  files: (ip: string) => `${ip}/files`,
   filter: (ip: string) => `${ip}/firewall/filter`,
   nat: (ip: string) => `${ip}/firewall/nat`,
   mangle: (ip: string) => `${ip}/firewall/mangle`,
@@ -57,7 +66,10 @@ export async function queryMikrotik(
   const _environment = new ProdConfig();
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
-  if (!token) return { error: "Sessão expirada." };
+  if (!token) {
+    cookieStore.delete("token");
+    redirect("/");
+  }
 
   const params = new URLSearchParams();
   if (tool === "ping" || tool === "tracert") {
@@ -93,6 +105,10 @@ export async function queryMikrotik(
     return { data };
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        cookieStore.delete("token");
+        redirect("/");
+      }
       if (error.code === "ECONNABORTED") {
         return { error: "A consulta excedeu o tempo. O MikroTik pode estar inacessível." };
       }
