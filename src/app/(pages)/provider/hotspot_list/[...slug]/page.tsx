@@ -17,6 +17,7 @@ import {
 } from "rsuite";
 import PlusRoundIcon from "@rsuite/icons/PlusRound";
 import IProvider from "@/app/interface/IProviders";
+import { StatusPill } from "@/app/components/_ui/resource/ResourceTable";
 
 const HotspotsPage = ({ params }: any) => {
   const router = useRouter();
@@ -132,7 +133,9 @@ const HotspotsPage = ({ params }: any) => {
 
           <Column width={200}>
             <HeaderCell>Status</HeaderCell>
-            <Cell dataKey="status" className="statusProvider" />
+            <Cell>
+              {(rowData: { status?: string }) => <StatusPill value={rowData.status} />}
+            </Cell>
           </Column>
 
           <Column width={120} fixed="right">

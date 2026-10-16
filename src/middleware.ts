@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   // const token = Cookies.get(TOKEN_KEY);
   const token = request.cookies.get(TOKEN_KEY);
 
-  const protectedRoutes = ['/home', '/providers', '/provider', '/users', '/user'];
+  const protectedRoutes = ['/home', '/providers', '/provider', '/users', '/user', '/clients', '/client', '/device', '/hotspots'];
 
   // const isProtectedRoute = protectedRoutes.includes(request.nextUrl.pathname);
   const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
@@ -29,5 +29,9 @@ export const config = {
     '/provider/:path*',
     '/users/:path*',
     '/user/:path*',
+    '/clients/:path*',
+    '/client/:path*',
+    '/device/:path*',
+    '/hotspots/:path*',
   ]
 }

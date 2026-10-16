@@ -17,7 +17,7 @@ export async function updateProvider(id: string | number, formData: IProvider) {
     };
 
     const reqOptions = {
-        url: `${_environment.API_URL}/provider/${id}/update`,
+        url: `${_environment.API_URL}/provider/update/${id}`,
         method: "PUT",
         headers: headersList,
         data: formData
@@ -25,6 +25,7 @@ export async function updateProvider(id: string | number, formData: IProvider) {
 
     try {
         const response = await axios.request(reqOptions);
+        console.log(response)
         return {
             response: response.data,
             status: response.status

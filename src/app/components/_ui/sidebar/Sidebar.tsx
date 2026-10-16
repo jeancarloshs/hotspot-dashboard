@@ -1,227 +1,156 @@
 "use client";
 
-import {
-  Container,
-  Header,
-  Sidebar,
-  Sidenav,
-  Content,
-  Nav,
-  Breadcrumb,
-  IconButton,
-  HStack,
-  Stack,
-  Text,
-} from "rsuite";
-import { Icon } from "@rsuite/icons";
-import { FaReact } from "react-icons/fa";
-import {
-  MdDashboard,
-  MdGroup,
-  MdSettings,
-  MdOutlineStackedBarChart,
-  MdKeyboardArrowLeft,
-  MdOutlineKeyboardArrowRight,
-  MdList,
-} from "react-icons/md";
-import { TbLogout2 } from "react-icons/tb";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { userLogout } from "@/actions/user-logout";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  MdOutlineDashboard,
+  MdOutlineRouter,
+  MdOutlineStorefront,
+  MdPeopleOutline,
+  MdAdminPanelSettings,
+  MdOutlineDevices,
+} from "react-icons/md";
+import { TbLogout2, TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from "react-icons/tb";
 
-interface SideBarProps extends React.HTMLAttributes<HTMLDivElement> {
+interface SideBarProps {
   children?: React.ReactNode;
 }
 
+const NAV = [
+  { href: "/home", label: "Visão geral", icon: MdOutlineDashboard },
+  { href: "/providers", label: "Provedores", icon: MdOutlineStorefront },
+  { href: "/hotspots", label: "Hotspots", icon: MdOutlineRouter },
+  { href: "/clients", label: "Clientes", icon: MdPeopleOutline },
+  { href: "/device/insert", label: "Dispositivos", icon: MdOutlineDevices },
+  { href: "/users", label: "Usuários", icon: MdAdminPanelSettings },
+];
+
+function chromeFor(pathname: string) {
+  const rules = [
+    { test: "/provider/hotspot/insert", eyebrow: "Hotspots", title: "Novo hotspot", blurb: "Cadastro de um ponto de acesso ligado a um provedor." },
+    { test: "/provider/hotspot/edit", eyebrow: "Hotspots", title: "Editar MikroTik", blurb: "Configuração do MikroTik selecionado: hotspot, rede, firewall e VPN." },
+    { test: "/provider/hotspot/show", eyebrow: "Hotspots", title: "Hotspot", blurb: "Consulta e gerenciamento do MikroTik deste ponto." },
+    { test: "/provider/hotspots", eyebrow: "Provedores", title: "Hotspots do provedor", blurb: "Pontos de acesso vinculados a este provedor." },
+    { test: "/provider/insert", eyebrow: "Provedores", title: "Novo provedor", blurb: "Nome, documento e endereço do provedor." },
+    { test: "/provider/show", eyebrow: "Provedores", title: "Editar provedor", blurb: "Atualize o cadastro do provedor." },
+    { test: "/provider/home", eyebrow: "Provedores", title: "Painel do provedor", blurb: "Resumo operacional deste provedor." },
+    { test: "/providers", eyebrow: "Cadastro", title: "Provedores", blurb: "Empresas que operam os hotspots." },
+    { test: "/hotspots", eyebrow: "Rede", title: "Hotspots", blurb: "Pontos de acesso MikroTik cadastrados." },
+    { test: "/clients/connected", eyebrow: "Acesso", title: "Sessões", blurb: "Clientes conectados neste momento." },
+    { test: "/clients", eyebrow: "Acesso", title: "Clientes", blurb: "Pessoas cadastradas para entrar no hotspot." },
+    { test: "/client/insert", eyebrow: "Acesso", title: "Novo cliente", blurb: "Cadastro de acesso a um hotspot." },
+    { test: "/client/login", eyebrow: "Acesso", title: "Login do cliente", blurb: "Autentica um cliente já cadastrado em um hotspot." },
+    { test: "/client/show", eyebrow: "Acesso", title: "Cliente", blurb: "Atualização e exclusão do cadastro de acesso." },
+    { test: "/device/insert", eyebrow: "Acesso", title: "Dispositivo", blurb: "Registro do aparelho a partir do CPF do cliente." },
+    { test: "/user/insert", eyebrow: "Equipe", title: "Novo usuário", blurb: "Usuário com acesso a este painel." },
+    { test: "/user/show", eyebrow: "Equipe", title: "Editar usuário", blurb: "Nome, permissão, status e provedor desta conta." },
+    { test: "/users", eyebrow: "Equipe", title: "Usuários", blurb: "Quem administra o painel." },
+    { test: "/home", eyebrow: "Operação", title: "Visão geral", blurb: "Provedores, hotspots e sessões ativas." },
+  ];
+
+  return (
+    rules.find((rule) => pathname === rule.test || pathname.startsWith(`${rule.test}/`)) ?? {
+      eyebrow: "Hotspot",
+      title: "Painel",
+      blurb: "Gestão de hotspots MikroTik.",
+    }
+  );
+}
+
+function isActive(href: string, pathname: string) {
+  if (pathname.startsWith("/device")) return href === "/device/insert";
+  if (pathname.includes("/hotspot")) return href === "/hotspots";
+  if (href === "/providers") return pathname.startsWith("/provider");
+  if (href === "/clients") return pathname.startsWith("/client");
+  if (href === "/users") return pathname.startsWith("/user");
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 const SideBar = ({ children }: SideBarProps) => {
-  const [expand, setExpand] = useState<boolean>(true);
+  const [expand, setExpand] = useState(true);
+  const pathname = usePathname();
   const router = useRouter();
-  const handleLogout = async (): Promise<void> => {
+  const chrome = chromeFor(pathname);
+  const today = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  const handleLogout = async () => {
     await userLogout();
-    return router.push("./");
+    router.push("/");
   };
 
   return (
-    <div
-      className="main-container"
-      style={{ marginLeft: expand ? 260 : 56, transition: "0.3s ease" }}
-    >
-      <Sidebar
-        className="sidebarComponent"
-        width={expand ? 260 : 56}
-        collapsible
-      >
-        <Sidenav.Header>
-          <Brand expand={expand} />
-        </Sidenav.Header>
-        <Sidenav expanded={expand} appearance="subtle">
-          <Sidenav.Body>
-            <Nav
-              defaultActiveKey="1"
-              className="siderbarComponent--nav_container"
-            >
-              <Nav.Item
-                eventKey="1"
-                className="siderbarComponent--nav_container--nav-item"
-                onClick={() => router.push("/home")}
-                icon={<Icon as={MdDashboard} />}
-              >
-                Dashboard
-              </Nav.Item>
-              <Nav.Item
-                eventKey="2"
-                className="siderbarComponent--nav_container--nav-item"
-                onClick={() => router.push("/providers")}
-                icon={<Icon as={MdList} />}
-              >
-                Clientes
-              </Nav.Item>
-              <Nav.Item
-                eventKey="3"
-                className="siderbarComponent--nav_container--nav-item"
-                onClick={() => router.push("/users")}
-                icon={<Icon as={MdGroup} />}
-              >
-                Usuarios
-              </Nav.Item>
-              <Nav.Menu
-                eventKey="3"
-                className="siderbarComponent--nav_container--nav-item"
-                trigger="hover"
-                title="Advanced"
-                icon={<Icon as={MdOutlineStackedBarChart} />}
-                placement="rightStart"
-              >
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="4-1"
-                >
-                  Geo
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="4-2"
-                >
-                  Devices
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="4-3"
-                >
-                  Brand
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="4-4"
-                >
-                  Loyalty
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="4-5"
-                >
-                  Visit Depth
-                </Nav.Item>
-              </Nav.Menu>
-              <Nav.Menu
-                eventKey="4"
-                className="siderbarComponent--nav_container--nav-item"
-                trigger="hover"
-                title="Configurações"
-                icon={<Icon as={MdSettings} />}
-                placement="rightStart"
-              >
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="5-1"
-                >
-                  Applications
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="5-2"
-                >
-                  Websites
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="5-3"
-                >
-                  Channels
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="5-4"
-                >
-                  Tags
-                </Nav.Item>
-                <Nav.Item
-                  className="siderbarComponent--nav_container--nav-item"
-                  eventKey="5-5"
-                >
-                  Versions
-                </Nav.Item>
-              </Nav.Menu>
+    <div className="app-frame" style={{ ["--nav" as string]: expand ? "248px" : "76px" }}>
+      <aside className={expand ? "app-nav" : "app-nav is-collapsed"}>
+        <div className="app-brand">
+          <span className="app-mark" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 13.2a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Z" fill="currentColor" />
+              <path d="M5.2 10.4a5.2 5.2 0 0 1 7.6 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <path d="M2.8 8a8.2 8.2 0 0 1 12.4 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </span>
+          <div className="app-brand-copy">
+            <strong>HOTSPOT</strong>
+            <span>Operação</span>
+          </div>
+        </div>
 
-              <Nav.Item
-                className="siderbarComponent--nav_container--nav-item"
-                eventKey="6"
-                onClick={() => handleLogout()}
-                icon={<Icon as={TbLogout2} />}
+        <p className="nav-section">Menu</p>
+        <nav className="app-menu" aria-label="Principal">
+          {NAV.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href, pathname);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={active ? "app-link is-active" : "app-link"}
+                aria-current={active ? "page" : undefined}
+                title={item.label}
               >
-                Logout
-              </Nav.Item>
-            </Nav>
-          </Sidenav.Body>
-        </Sidenav>
-        <NavToggle expand={expand} onChange={() => setExpand(!expand)} />
-      </Sidebar>
+                <Icon size={18} />
+                <span className="nav-label">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
 
-      <Container>
-        <Header className="page-header">
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="##">Dashboard</Breadcrumb.Item>
-            <Breadcrumb.Item active>Overview</Breadcrumb.Item>
-          </Breadcrumb>
-        </Header>
-        <Content>{children}</Content>
-      </Container>
+        <div className="app-nav-foot">
+          <button
+            type="button"
+            className="nav-icon-btn"
+            onClick={() => setExpand((open) => !open)}
+            aria-label={expand ? "Recolher menu" : "Expandir menu"}
+          >
+            {expand ? <TbLayoutSidebarLeftCollapse size={18} /> : <TbLayoutSidebarLeftExpand size={18} />}
+          </button>
+          <button type="button" className="logout-btn" onClick={handleLogout}>
+            <TbLogout2 size={18} />
+            <span>Sair</span>
+          </button>
+        </div>
+      </aside>
+
+      <div className="app-main">
+        <header className="app-topbar">
+          <div>
+            <p className="eyebrow">{chrome.eyebrow}</p>
+            <h1>{chrome.title}</h1>
+            <p>{chrome.blurb}</p>
+          </div>
+          <p className="topbar-date" suppressHydrationWarning>
+            {today}
+          </p>
+        </header>
+        <div className="app-content">{children}</div>
+      </div>
     </div>
-  );
-};
-
-const NavToggle = ({
-  expand,
-  onChange,
-}: {
-  expand: boolean;
-  onChange: () => void;
-}) => {
-  return (
-    <Stack
-      className="nav-toggle"
-      justifyContent={expand ? "flex-end" : "center"}
-    >
-      <IconButton
-        className="siderbarComponent--nav_container--nav-item"
-        onClick={onChange}
-        appearance="subtle"
-        size="lg"
-        icon={
-          expand ? <MdKeyboardArrowLeft /> : <MdOutlineKeyboardArrowRight />
-        }
-      />
-    </Stack>
-  );
-};
-
-const Brand = ({ expand }: { expand: boolean }) => {
-  return (
-    <HStack className="page-brand" spacing={12}>
-      <FaReact size={26} />
-      {expand && <Text className="text">HOTSPOT</Text>}
-    </HStack>
   );
 };
 

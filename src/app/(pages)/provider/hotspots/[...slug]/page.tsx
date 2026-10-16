@@ -1,166 +1,115 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { getAllHotspots } from "@/actions/get-all-hotspots";
+import { getAllHotspotsProvider } from "@/actions/get-all-hotspots-provider";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
-import { IHotspot } from "@/app/interface/IUsersConnected";
+import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  Dropdown,
-  Form,
-  IconButton,
-  Loader,
-  Popover,
-  Table,
-  Whisper,
-} from "rsuite";
-import PlusRoundIcon from "@rsuite/icons/PlusRound";
-import IProvider from "@/app/interface/IProviders";
+import React, { useEffect, useMemo, useState } from "react";
 
-const HotspotsPage = ({ params }: any) => {
+type HotspotRow = {
+  id?: number;
+  nome?: string;
+  ip?: string;
+  cidade?: string;
+  estado?: string;
+  status?: string;
+  isp?: { id?: number; nome?: string };
+};
+
+const ProviderHotspotsPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const router = useRouter();
-  const [allHotSpots, setAllHotspots] = useState<IHotspot[]>([]);
-  const { Column, HeaderCell, Cell } = Table;
-  // const [users, setUsers] = useState<IUsersConnected[]>([]);
-  const [error, setError] = useState<any>();
-  const [loading, setLoading] = useState<boolean>();
-  const resolvedParams = React.use<any>(params);
-  const slug = resolvedParams.slug[0];
-  //   const slugID = resolvedParams.slug[1];
-
-  const renderMenu = (
-    { onClose, left, top, className }: any,
-    ref: IProvider | any
-  ) => {
-    const handleSelect = (eventKey: any) => {
-      onClose();
-      console.log(`eventKey ${eventKey}`);
-      switch (eventKey) {
-        case 1:
-          router.push(`/user/${slug}`);
-          break;
-        case 2:
-          router.push(`/user/hotspots/${slug}`);
-          break;
-        case 3:
-          router.push(`/user/show/${slug}`);
-          break;
-        default:
-          console.log("escolha uma opção");
-      }
-    };
-
-    return (
-      <Popover ref={ref} className={className} style={{ left, top }} full>
-        <Dropdown.Menu onSelect={handleSelect}>
-          <Dropdown.Item eventKey={1}>Home</Dropdown.Item>
-          <Dropdown.Item eventKey={2}>Configurações</Dropdown.Item>
-          <Dropdown.Item eventKey={3}>Editar</Dropdown.Item>
-        </Dropdown.Menu>
-      </Popover>
-    );
-  };
-
-  const ActionCell = ({ rowData, dataKey, ...props }: any) => {
-    return (
-      <Cell {...props} className="link-group" style={{ padding: "6px" }}>
-        <Whisper
-          placement="autoVerticalStart"
-          trigger="click"
-          speaker={renderMenu}
-        >
-          <IconButton appearance="subtle" icon={<PlusRoundIcon />} />
-        </Whisper>
-      </Cell>
-    );
-  };
+  const providerId = React.use(params).slug[0];
+  const [hotspots, setHotspots] = useState<HotspotRow[]>([]);
+  const [query, setQuery] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchHotspots = async () => {
-      const _getAllHotspots = await getAllHotspots(slug);
-      try {
-        setAllHotspots(_getAllHotspots);
-      } catch (error) {
-        setError("Erro ao carregar os hotspots");
-      } finally {
-        setLoading(false);
+    const load = async () => {
+      const response = await getAllHotspotsProvider(providerId);
+      if (!response) {
+        setError("Não foi possível carregar os hotspots deste provedor.");
+        setHotspots([]);
+        return;
       }
+      setError("");
+      setHotspots(asList<HotspotRow>(response));
     };
-    fetchHotspots();
-  }, []);
+    load();
+  }, [providerId]);
 
-  console.log(allHotSpots);
-
-  const handlePageBack = () => {
-    router.push("/providers");
-  };
-
-  const handleInsert = (id: any): any => {
-    console.log("id", id);
-    // router.push("/providers");
-  };
+  const providerName = hotspots.find((hotspot) => hotspot.isp?.nome)?.isp?.nome;
+  const visible = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return hotspots;
+    return hotspots.filter((hotspot) =>
+      [hotspot.nome, hotspot.ip, hotspot.cidade, hotspot.estado, hotspot.status]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term))
+    );
+  }, [hotspots, query]);
 
   return (
     <SideBar>
-      <div className="sidebar--container">
-        <div className="btn-container">
-          <div className="btn" onClick={handlePageBack}>
-            <p>Voltar</p>
-          </div>
-          <div className="btn" onClick={() => handleInsert(slug)}>
-            <p>Adicionar</p>
-          </div>
+      <div className="page-toolbar">
+        <p className="page-lead">
+          {providerName ? `Pontos de ${providerName}.` : "Pontos de acesso deste provedor."}
+        </p>
+        <div className="toolbar-actions">
+          <input
+            className="search-field"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar hotspot"
+            aria-label="Buscar hotspot"
+          />
+          <button type="button" className="btn" onClick={() => router.push("/providers")}>
+            Voltar
+          </button>
+          <button type="button" className="btn btn--solid" onClick={() => router.push("/provider/hotspot/insert")}>
+            Novo hotspot
+          </button>
         </div>
-
-        <Table
-          height={600}
-          data={allHotSpots}
-          // onRowClick={(rowData: IUsersConnected) => {
-          //   userID = rowData.id;
-          //   // setProviderID(id)
-          //   renderMenu({}, userID);
-          //   console.log("rowData", rowData);
-          // }}
-          renderEmpty={() => (
-            <div style={{ padding: 20, textAlign: "center" }}>
-              Nenhum Hotspot Cadastrado
-            </div>
-          )}
-        >
-          <Column width={100} align="center" fixed>
-            <HeaderCell>Id</HeaderCell>
-            <Cell dataKey="id" />
-          </Column>
-
-          <Column width={200}>
-            <HeaderCell>Nome Hotspot</HeaderCell>
-            <Cell dataKey="nome" />
-          </Column>
-
-          <Column width={200}>
-            <HeaderCell>Provedor</HeaderCell>
-            <Cell dataKey="isp.nome" />
-          </Column>
-
-          <Column width={200}>
-            <HeaderCell>IP</HeaderCell>
-            <Cell dataKey="ip" />
-          </Column>
-
-          <Column width={200}>
-            <HeaderCell>Status</HeaderCell>
-            <Cell dataKey="status" className="statusProvider" />
-          </Column>
-
-          <Column width={120} fixed="right">
-            <HeaderCell>Opções</HeaderCell>
-            <ActionCell dataKey="id" />
-          </Column>
-        </Table>
       </div>
+
+      {error ? <p className="error-message">{error}</p> : null}
+
+      <ResourceTable
+        rows={visible}
+        empty={hotspots.length === 0 ? "Nenhum hotspot cadastrado para este provedor." : "Nenhum hotspot encontrado para essa busca."}
+        rowKey={(row, index) => row.id ?? index}
+        columns={[
+          {
+            key: "nome",
+            header: "Hotspot",
+            render: (row) => (
+              <>
+                <span className="cell-title">{row.nome || "—"}</span>
+                <span className="cell-sub">{row.ip || "Sem IP"}</span>
+              </>
+            ),
+          },
+          {
+            key: "cidade",
+            header: "Cidade",
+            render: (row) => [row.cidade, row.estado].filter(Boolean).join(" · ") || "—",
+          },
+          { key: "status", header: "Status", render: (row) => <StatusPill value={row.status} /> },
+          {
+            key: "acoes",
+            header: "Ações",
+            align: "right",
+            render: (row) => (
+              <div className="row-links">
+                <Link href={`/provider/hotspot/show/${row.id}`}>Consultar</Link>
+                <Link href={`/provider/hotspot/edit/${row.id}`}>Editar</Link>
+              </div>
+            ),
+          },
+        ]}
+      />
     </SideBar>
   );
 };
 
-export default HotspotsPage;
+export default ProviderHotspotsPage;

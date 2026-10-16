@@ -6,303 +6,149 @@ import { getCNPJ } from "@/actions/get-cnpj";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import IProvider from "@/app/interface/IProviders";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Button, Dropdown, Form, Loader } from "rsuite";
+import { FormEvent, useState } from "react";
+
+const STATUSES = ["ativo", "inativo", "bloqueado", "pendente", "rejeitado", "cancelado"];
+
+const emptyProvider = (): IProvider => ({
+  nome: "",
+  cnpj: "",
+  razao_social: "",
+  endereco: "",
+  telefone: "",
+  celular: "",
+  email: "",
+  site: "",
+  numero: "",
+  complemento: "",
+  cidade: "",
+  bairro: "",
+  cep: "",
+  estado: "",
+  status: "ativo",
+});
+
+function digits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function formatCNPJ(cnpj: string) {
+  return digits(cnpj).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+}
+
+function formatCEP(cep: string) {
+  return digits(cep).replace(/^(\d{2})(\d{3})(\d{3})$/, "$1.$2-$3");
+}
+
+function formatTel(telefone: string) {
+  const cleaned = digits(telefone);
+  if (cleaned.length === 10) return cleaned.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
+  if (cleaned.length === 11) return cleaned.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+  return telefone;
+}
+
+function messageFrom(data: unknown) {
+  if (typeof data === "string") return data;
+  if (data && typeof data === "object" && "message" in data && typeof data.message === "string") return data.message;
+  return "Não foi possível salvar o provedor.";
+}
 
 const InsertProviderPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedValue, setSelectedValue] = useState("");
-  const [formData, setFormData] = useState<IProvider>({
-    nome: "",
-    cnpj: "",
-    razao_social: "",
-    endereco: "",
-    telefone: "",
-    celular: "",
-    email: "",
-    site: "",
-    numero: "",
-    complemento: "",
-    cidade: "",
-    bairro: "",
-    cep: "",
-    estado: "",
-    status: "",
-  });
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState<IProvider>(emptyProvider);
 
-  const handleChange = (value: string, key: string) => {
-    setFormData({
-      ...formData,
-      [key]: value,
-    });
+  const setField = (key: keyof IProvider, value: string) => {
+    setFormData((current) => ({ ...current, [key]: value }));
   };
 
-  const handleSelect = (eventKey: string) => {
-    setSelectedValue(eventKey); // Atualiza o estado com o valor selecionado
+  const handleCepBlur = async () => {
+    const cep = digits(formData.cep || "");
+    if (cep.length !== 8) return;
+    const response = await getCep(cep);
+    if (!response) return;
+    setFormData((current) => ({
+      ...current,
+      endereco: response.logradouro,
+      bairro: response.bairro,
+      cidade: response.localidade,
+      estado: response.uf,
+    }));
   };
 
-  const handleCepBlur = async (event: React.FocusEvent<HTMLElement>) => {
-    const target = event.target as HTMLInputElement; // Faz o cast para HTMLInputElement
-    const cep = target.value.replace(/\D/g, "");
-    if (cep.length === 8) {
-      const response = await getCep(cep);
-      if (response) {
-        setFormData((prevState) => ({
-          ...prevState,
-          endereco: response.logradouro,
-          bairro: response.bairro,
-          cidade: response.localidade,
-          estado: response.uf,
-        }));
-      }
-    }
+  const handleCNPJBlur = async () => {
+    const cnpj = (formData.cnpj || "").replace(/[.\-/]/g, "");
+    if (cnpj.length !== 14) return;
+    const response = await getCNPJ(cnpj);
+    if (!response) return;
+    setFormData((current) => ({
+      ...current,
+      nome: response.nome_fantasia || current.nome,
+      razao_social: response.razao_social || current.razao_social,
+      telefone: response.ddd_telefone_1 || current.telefone,
+    }));
   };
 
-  const handleCNPJBlur = async (event: React.FocusEvent<HTMLElement>) => {
-    const target = event.target as HTMLInputElement;
-    const cnpj = target.value.replace(/[.\-/]/g, "");
-    if (cnpj.length === 14) {
-      const response = await getCNPJ(cnpj);
-      if (response) {
-        setFormData({
-          ...formData,
-          nome: response.nome_fantasia,
-          razao_social: response.razao_social,
-          telefone: response.ddd_telefone_1,
-        });
-      }
-    }
-  };
-
-  const formatCNPJ = (cnpj: any) => {
-    return cnpj
-      .replace(/[^\d]/g, "") // Remove qualquer caractere não numérico
-      .replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5"); // Adiciona a formatação
-  };
-
-  const formatCEP = (cep: any) => {
-    return cep
-      .replace(/[^\d]/g, "")
-      .replace(/^(\d{2})(\d{3})(\d{3})$/, "$1.$2-$3");
-  };
-
-  const formatTel = (telefone: any) => {
-    const cleaned = telefone.replace(/[^\d]/g, "");
-
-    if (cleaned.length === 10) {
-      return cleaned.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
-    } else if (cleaned.length === 11) {
-      return cleaned.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-    } else {
-      return telefone;
-    }
-  };
-
-  const handlePageBack = () => {
-    router.push("/providers");
-  };
-
-  const handleSubmit = async () => {
-    const formattedCNPJ = formatCNPJ(formData.cnpj);
-    const formattedCEP = formatCEP(formData.cep);
-    const formattedTelefone = formatTel(formData.telefone);
-    const formattedCel = formatTel(formData.celular);
-
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    setError("");
     const response = await createProvider({
       ...formData,
-      cnpj: formattedCNPJ,
-      cep: formattedCEP,
-      telefone: formattedTelefone,
-      celular: formattedCel,
-      status: selectedValue,
+      cnpj: formatCNPJ(formData.cnpj || ""),
+      cep: formatCEP(formData.cep || ""),
+      telefone: formatTel(formData.telefone || ""),
+      celular: formatTel(formData.celular || ""),
     });
 
     if (response.status === 201) {
       router.push("/providers");
-    } else {
-      console.error("Erro ao salvar provedor:", response.data);
-      alert(`Erro ao salvar provedor. Tente novamente.`);
+      return;
     }
+    setError(messageFrom(response.data));
+    setLoading(false);
   };
 
   return (
     <SideBar>
-      <div className="sidebar--container">
-        <Form className="form-provider">
-          <Form.Group controlId="nome">
-            <Form.ControlLabel>Nome Provedor</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Nome Provedor"
-              name="nome"
-              value={formData.nome}
-              onChange={(value: string) => handleChange(value, "nome")}
-            />
-          </Form.Group>
-          <Form.Group controlId="cnpj">
-            <Form.ControlLabel>CNPJ</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="CNPJ"
-              name="cnpj"
-              value={formatCNPJ(formData.cnpj)}
-              onChange={(value: string) => handleChange(value, "cnpj")}
-              onBlur={handleCNPJBlur}
-            />
-          </Form.Group>
-          <Form.Group controlId="razao_social">
-            <Form.ControlLabel>Razao Social</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Razao Social"
-              name="razao_social"
-              value={formData.razao_social}
-              onChange={(value: string) => handleChange(value, "razao_social")}
-            />
-          </Form.Group>
-          <Form.Group controlId="telefone">
-            <Form.ControlLabel>Telefone</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Telefone"
-              name="telefone"
-              value={formatTel(formData.telefone)}
-              onChange={(value: string) => handleChange(value, "telefone")}
-            />
-          </Form.Group>
-          <Form.Group controlId="celular">
-            <Form.ControlLabel>Celular</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Celular"
-              name="celular"
-              value={formatTel(formData.celular)}
-              onChange={(value: string) => handleChange(value, "celular")}
-            />
-          </Form.Group>
-          <Form.Group controlId="email">
-            <Form.ControlLabel>E-mail</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="E-mail"
-              name="email"
-              value={formData.email}
-              onChange={(value: string) => handleChange(value, "email")}
-            />
-          </Form.Group>
-          <Form.Group controlId="site">
-            <Form.ControlLabel>Site</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Site"
-              name="site"
-              value={formData.site}
-              onChange={(value: string) => handleChange(value, "site")}
-            />
-          </Form.Group>
-          <Form.Group controlId="cep">
-            <Form.ControlLabel>CEP</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="CEP"
-              name="cep"
-              value={formatCEP(formData.cep)}
-              onChange={(value: string) => handleChange(value, "cep")}
-              onBlur={handleCepBlur}
-            />
-          </Form.Group>
-          <Form.Group controlId="endereco">
-            <Form.ControlLabel>Endereço</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Endereço"
-              name="endereco"
-              value={formData.endereco}
-              onChange={(value: string) => handleChange(value, "endereco")}
-            />
-          </Form.Group>
-          <Form.Group controlId="numero">
-            <Form.ControlLabel>Número</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Número"
-              name="numero"
-              value={formData.numero}
-              onChange={(value: string) => handleChange(value, "numero")}
-            />
-          </Form.Group>
-          <Form.Group controlId="complemento">
-            <Form.ControlLabel>Complemento</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Complemento"
-              name="complemento"
-              value={formData.complemento}
-              onChange={(value: string) => handleChange(value, "complemento")}
-            />
-          </Form.Group>
-          <Form.Group controlId="cidade">
-            <Form.ControlLabel>Cidade</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Cidade"
-              name="cidade"
-              value={formData.cidade}
-              onChange={(value: string) => handleChange(value, "cidade")}
-            />
-          </Form.Group>
-          <Form.Group controlId="bairro">
-            <Form.ControlLabel>Bairro</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Bairro"
-              name="bairro"
-              value={formData.bairro}
-              onChange={(value: string) => handleChange(value, "bairro")}
-            />
-          </Form.Group>
-          <Form.Group controlId="estado">
-            <Form.ControlLabel>Estado</Form.ControlLabel>
-            <Form.Control
-              className="inputForm"
-              placeholder="Estado"
-              name="estado"
-              value={formData.estado}
-              onChange={(value: string) => handleChange(value, "estado")}
-            />
-          </Form.Group>
-          <Form.Group controlId="status">
-            <Form.ControlLabel>Status</Form.ControlLabel>
-            <Dropdown
-              title={selectedValue || "Selecione uma opção"}
-              onSelect={handleSelect}
-            >
-              <Dropdown.Item>Selecione uma opção</Dropdown.Item>
-              <Dropdown.Item eventKey={"ativo"}>Ativo</Dropdown.Item>
-              <Dropdown.Item eventKey={"inativo"}>Inativo</Dropdown.Item>
-              <Dropdown.Item eventKey={"bloqueado"}>Bloqueado</Dropdown.Item>
-              <Dropdown.Item eventKey={"pendente"}>Pendente</Dropdown.Item>
-              <Dropdown.Item eventKey={"rejeitado"}>Rejeitado</Dropdown.Item>
-              <Dropdown.Item eventKey={"cancelado"}>Cancelado</Dropdown.Item>
-            </Dropdown>
-          </Form.Group>
-        </Form>
-        <div className="btn-container">
-          <Button appearance="default" onClick={handlePageBack}>
-            Voltar
-          </Button>
-          <Button
-            appearance="primary"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? <Loader /> : "Salvar"}
-          </Button>
-        </div>
-        {error && <p className="error-message">{error}</p>}
-      </div>
+      <section className="panel">
+        <form className="edit-form edit-form--wide tool-board" onSubmit={handleSubmit}>
+          <p className="edit-note form-full">O CNPJ preenche nome e telefone. O CEP preenche o endereço.</p>
+
+          <h2 className="form-span">Identificação</h2>
+          <label>Nome<input value={formData.nome} onChange={(event) => setField("nome", event.target.value)} required /></label>
+          <label>CNPJ<input value={formatCNPJ(formData.cnpj || "")} onChange={(event) => setField("cnpj", event.target.value)} onBlur={handleCNPJBlur} inputMode="numeric" /></label>
+          <label>Razão social<input value={formData.razao_social} onChange={(event) => setField("razao_social", event.target.value)} /></label>
+          <label>
+            Status
+            <select value={formData.status} onChange={(event) => setField("status", event.target.value)}>
+              {STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+            </select>
+          </label>
+
+          <h2 className="form-span">Contato</h2>
+          <label>Telefone<input value={formatTel(formData.telefone || "")} onChange={(event) => setField("telefone", event.target.value)} inputMode="tel" /></label>
+          <label>Celular<input value={formatTel(formData.celular || "")} onChange={(event) => setField("celular", event.target.value)} inputMode="tel" /></label>
+          <label>E-mail<input type="email" value={formData.email} onChange={(event) => setField("email", event.target.value)} /></label>
+          <label>Site<input value={formData.site} onChange={(event) => setField("site", event.target.value)} /></label>
+
+          <h2 className="form-span">Endereço</h2>
+          <label>CEP<input value={formatCEP(formData.cep || "")} onChange={(event) => setField("cep", event.target.value)} onBlur={handleCepBlur} inputMode="numeric" /></label>
+          <label>Endereço<input value={formData.endereco} onChange={(event) => setField("endereco", event.target.value)} /></label>
+          <label>Número<input value={formData.numero} onChange={(event) => setField("numero", event.target.value)} /></label>
+          <label>Complemento<input value={formData.complemento} onChange={(event) => setField("complemento", event.target.value)} /></label>
+          <label>Bairro<input value={formData.bairro} onChange={(event) => setField("bairro", event.target.value)} /></label>
+          <label>Cidade<input value={formData.cidade} onChange={(event) => setField("cidade", event.target.value)} /></label>
+          <label>Estado<input value={formData.estado} onChange={(event) => setField("estado", event.target.value)} maxLength={2} /></label>
+
+          {error ? <p className="error-message form-span">{error}</p> : null}
+          <div className="form-actions">
+            <button type="button" className="btn" onClick={() => router.push("/providers")}>Voltar</button>
+            <button type="submit" className="btn btn--solid" disabled={loading}>{loading ? "Salvando..." : "Salvar provedor"}</button>
+          </div>
+        </form>
+      </section>
     </SideBar>
   );
 };

@@ -1,135 +1,92 @@
 "use client";
-import React, { useActionState, useEffect, useState } from "react";
-// import { cookies } from 'next/headers';
-// import { NextResponse } from 'next/server';
-import { useRouter } from "next/navigation";
+
 import { loginUser } from "@/actions/user-login";
-import EyeRoundIcon from "@rsuite/icons/EyeRound";
-import EyeCloseIcon from "@rsuite/icons/EyeClose";
-import { RolePermissions, Roles } from "@/app/interface/IStatusList";
-// import { Loader } from "rsuite";
+import { Roles } from "@/app/interface/IStatusList";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const LoginPage = () => {
   const router = useRouter();
-
-  // const response = NextResponse.next();
-  // const [result, handleLoginUser, isPeding] = useActionState(loginUser, null);
-  const [isPeding, setIsPeding] = useState(false);
-  const [formLogin, setFormLogin] = useState({
-    email: "",
-    password: "",
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [showPassword, setShowPassword] = useState(true);
-
-  useEffect(() => {}, []);
+  const [isPending, setIsPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsPeding(true);
+    setIsPending(true);
+    setError("");
     const formData = new FormData(event.currentTarget);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const response = await loginUser(formData);
 
-      if (response!.data!.objAuth!.permission === Roles.SUPER_ADMIN) {
-        router.push("./home");
+    try {
+      const response = await loginUser(formData);
+      const auth = response?.data?.objAuth;
+      if (auth?.permission === Roles.SUPER_ADMIN) {
+        router.push("/home");
+        return;
       }
-    } catch (error: any) {
-      if (error.message.match("401")) {
-        setIsPeding(false);
-        return alert("Usuário ou senha inválidos");
-      }
-      setIsPeding(false);
-      console.error("Erro ao realizar login", error);
-      alert(`Erro ao realizar login\n ${error}`);
+      setError(auth?.token ? "Esta conta não tem permissão para o painel." : "E-mail ou senha inválidos.");
+      setIsPending(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
+      setError(message.includes("401") ? "E-mail ou senha inválidos." : "Não foi possível entrar agora.");
+      setIsPending(false);
     }
   };
 
-  const handleShowPassword = () => {
-    setShowPassword(!showPassword);
-  }
-
-  // const handleOnLogin = (
-  //   event: React.ChangeEvent<HTMLInputElement>,
-  //   key: "email" | "password"
-  // ) => {
-  //   setFormLogin({ ...formLogin, [key]: event.target.value });
-  // };
-
-  // const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-  //   event.preventDefault();
-
-  //   const _loginService = new LoginService();
-  //   const { data, error } = await _loginService.login({
-  //     userEmail: formLogin.email,
-  //     userPassword: formLogin.password,
-  //   });
-
-  //   if (error) {
-  //     console.error("Erro ao realizar login:", error);
-  //   }
-
-  //   if (!error) {
-  //     console.log("Login", data);
-  //   }
-  // };
-
   return (
-    <>
-      <div className="container--login">
-        <div className="container--login--section">
-          <div className="container--header">
-            <h1 className="container--h1">Acesse sua Conta</h1>
-            <span className="container--span">
-              Insira suas credenciais para fazer login
-            </span>
+    <main className="login-screen">
+      <section className="login-story">
+        <div>
+          <p className="eyebrow">Painel de operação</p>
+          <h1>Hotspot</h1>
+          <p>Provedores, pontos de acesso e sessões MikroTik no mesmo lugar.</p>
+          <ul className="login-points">
+            <li>Provedores e hotspots</li>
+            <li>Clientes conectados</li>
+            <li>Usuários do sistema</li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="login-form-wrap">
+        <form className="login-card" onSubmit={handleSubmit}>
+          <p className="eyebrow">Acesso</p>
+          <h2>Entre na sua conta</h2>
+          <p className="page-lead">Use o e-mail e a senha do usuário do sistema.</p>
+
+          <div className="login-field">
+            <label htmlFor="username">E-mail</label>
+            <input id="username" name="username" type="email" autoComplete="username" required />
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="container--login_form-group">
-              <label htmlFor="username"></label>
+
+          <div className="login-field">
+            <label htmlFor="password">Senha</label>
+            <div className="password-row">
               <input
-                type="text"
-                name="username"
-                // value={formLogin.email}
-                // onChange={(event) => handleOnLogin(event, "email")}
-                className="container--login_input"
-                placeholder="Email"
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
                 required
               />
-              <div className="input-password-wrapper">
-                <label htmlFor="password"></label>
-                <input
-                  type={showPassword == true ? "password" : "text"}
-                  name="password"
-                  // value={formLogin.password}
-                  // onChange={(event) => handleOnLogin(event, "password")}
-                  className="container--login_input password"
-                  placeholder="Password"
-                  required
-                />
-                {showPassword == true ? (
-                  <EyeCloseIcon
-                    color="white"
-                    className="password--icon"
-                    onClick={() => handleShowPassword()}
-                  />
-                ) : (
-                  <EyeRoundIcon
-                    color="white"
-                    className="password--icon"
-                    onClick={() => handleShowPassword()}
-                  />
-                )}
-              </div>
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </button>
             </div>
-            <button disabled={isPeding} className="btnLogin">
-              {isPeding ? "Carregando..." : "Login"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </>
+          </div>
+
+          {error ? <p className="login-error">{error}</p> : null}
+
+          <button className="btnLogin" disabled={isPending}>
+            {isPending ? "Entrando..." : "Entrar"}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 };
 
