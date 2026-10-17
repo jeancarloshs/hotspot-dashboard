@@ -1,6 +1,7 @@
 "use server";
 
 import ProdConfig from "@/app/api/config/prod_config";
+import { clearAuthSession } from "@/actions/session";
 import axios from "axios";
 import { cookies } from "next/headers";
 
@@ -30,4 +31,5 @@ export async function userLogout() {
 
   cookieStore.delete("token");
   cookieStore.delete("refreshToken");
+  await clearAuthSession();
 }

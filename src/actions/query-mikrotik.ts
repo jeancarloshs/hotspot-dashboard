@@ -13,6 +13,7 @@ const TOOLS = {
   active: (ip: string) => `hotspot/${ip}/users/active`,
   profiles: (ip: string) => `${ip}/hotspot/profiles`,
   servers: (ip: string) => `${ip}/hotspot`,
+  walledGarden: (ip: string) => `${ip}/hotspot/walled-garden`,
   interfaces: (ip: string) => `${ip}/interfaces`,
   ethernet: (ip: string) => `${ip}/interfaces/ethernet`,
   bridges: (ip: string) => `${ip}/interfaces/bridge`,

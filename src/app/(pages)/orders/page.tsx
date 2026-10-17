@@ -1,9 +1,10 @@
 "use client";
 
 import { getAllHotspots } from "@/actions/get-all-hotspots";
-import { getAllOrders } from "@/actions/orders";
+import { getAllOrders, getPaymentReports } from "@/actions/orders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { useAcl } from "@/app/hooks/use-acl";
 import { ORDER_FILTER_STATUSES, paymentStatusLabel } from "@/app/lib/order-payment";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,15 @@ type OrderRow = {
   hotspot?: { nome?: string };
 };
 
+type ReportTotals = {
+  orders?: number;
+  paid?: number;
+  pending?: number;
+  revenue?: number;
+  mikrotik_provisioned?: number;
+  mikrotik_pending_or_failed?: number;
+};
+
 function money(value?: string | number, currency = "BRL") {
   const amount = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(amount)) return value != null && value !== "" ? String(value) : "—";
@@ -33,26 +43,35 @@ function money(value?: string | number, currency = "BRL") {
 
 const OrdersPage = () => {
   const router = useRouter();
+  const { can, permission, ready } = useAcl();
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [hotspots, setHotspots] = useState<{ id?: number; nome?: string }[]>([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [hsID, setHsID] = useState("");
+  const [totals, setTotals] = useState<ReportTotals | null>(null);
 
   useEffect(() => {
+    if (!ready) return;
     const load = async () => {
-      const [orderResponse, hotspotResponse] = await Promise.all([
-        getAllOrders({
-          status: status || undefined,
-          hsID: hsID ? Number(hsID) : undefined,
-        }),
+      const filters = {
+        status: status || undefined,
+        hsID: hsID ? Number(hsID) : undefined,
+      };
+      const [orderResponse, hotspotResponse, reportResponse] = await Promise.all([
+        getAllOrders(filters),
         getAllHotspots(),
+        can("reports.read") ? getPaymentReports({ hsID: filters.hsID }) : Promise.resolve(null),
       ]);
       setOrders(asList<OrderRow>(orderResponse));
       setHotspots(asList(hotspotResponse));
+      const report = reportResponse && typeof reportResponse === "object"
+        ? (reportResponse as { totals?: ReportTotals }).totals ?? null
+        : null;
+      setTotals(report);
     };
     load();
-  }, [status, hsID]);
+  }, [status, hsID, ready, permission]);
 
   const visible = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -94,6 +113,31 @@ const OrdersPage = () => {
           </button>
         </div>
       </div>
+
+      {totals ? (
+        <section className="stat-grid" style={{ marginBottom: 18 }}>
+          <div className="stat-card">
+            <span>Pedidos</span>
+            <strong>{totals.orders ?? 0}</strong>
+            <em>No filtro atual</em>
+          </div>
+          <div className="stat-card">
+            <span>Pagos</span>
+            <strong>{totals.paid ?? 0}</strong>
+            <em>{money(totals.revenue)}</em>
+          </div>
+          <div className="stat-card">
+            <span>Em aberto</span>
+            <strong>{totals.pending ?? 0}</strong>
+            <em>Aguardando pagamento</em>
+          </div>
+          <div className="stat-card">
+            <span>Provisionamento</span>
+            <strong>{totals.mikrotik_provisioned ?? 0}</strong>
+            <em>{totals.mikrotik_pending_or_failed ?? 0} pendente/falha</em>
+          </div>
+        </section>
+      ) : null}
 
       <div className="filter-bar">
         <label>

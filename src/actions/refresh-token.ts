@@ -1,6 +1,8 @@
 "use server";
 
 import ProdConfig from "@/app/api/config/prod_config";
+import { clearAuthSession, setAuthSession } from "@/actions/session";
+import { decodeJwtPayload } from "@/app/lib/jwt-payload";
 import axios from "axios";
 import { cookies } from "next/headers";
 
@@ -43,10 +45,23 @@ export async function refreshAccessToken(): Promise<{ ok: boolean; error?: strin
         maxAge: 7 * 24 * 60 * 60,
       });
     }
+
+    const payload = decodeJwtPayload(token);
+    if (payload) {
+      await setAuthSession({
+        permission: typeof payload.permission === "string" ? payload.permission : null,
+        name: typeof payload.name === "string" ? payload.name : null,
+        email: typeof payload.email === "string" ? payload.email : null,
+        ispID: typeof payload.ispID === "number" ? payload.ispID : null,
+        userID: typeof payload.userID === "number" ? payload.userID : null,
+      });
+    }
+
     return { ok: true };
   } catch (error) {
     cookieStore.delete("token");
     cookieStore.delete("refreshToken");
+    await clearAuthSession();
     if (axios.isAxiosError(error)) {
       const payload = error.response?.data;
       const message = typeof payload === "string"

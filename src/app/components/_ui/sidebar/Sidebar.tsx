@@ -1,9 +1,12 @@
 "use client";
 
+import { useAuthSession } from "@/app/components/_ui/auth/AuthProvider";
 import { userLogout } from "@/actions/user-logout";
+import { navVisible } from "@/app/lib/acl";
+import { permissionLabel } from "@/app/lib/user-options";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   MdOutlineDashboard,
   MdOutlineRouter,
@@ -31,7 +34,7 @@ const NAV = [
   { href: "/payment-gateways", label: "Pagamentos", icon: MdOutlinePayments },
   { href: "/orders", label: "Pedidos", icon: MdOutlineReceiptLong },
   { href: "/clients", label: "Clientes", icon: MdPeopleOutline },
-  { href: "/device/insert", label: "Dispositivos", icon: MdOutlineDevices },
+  { href: "/devices", label: "Dispositivos", icon: MdOutlineDevices },
   { href: "/users", label: "Usuários", icon: MdAdminPanelSettings },
 ];
 
@@ -68,6 +71,7 @@ function chromeFor(pathname: string | null) {
     { test: "/client/login", eyebrow: "Acesso", title: "Login do cliente", blurb: "Autentica um cliente já cadastrado em um hotspot." },
     { test: "/client/show", eyebrow: "Acesso", title: "Cliente", blurb: "Atualização e exclusão do cadastro de acesso." },
     { test: "/device/insert", eyebrow: "Acesso", title: "Dispositivo", blurb: "Registro do aparelho a partir do CPF do cliente." },
+    { test: "/devices", eyebrow: "Acesso", title: "Dispositivos", blurb: "Aparelhos registrados e logs de conexão." },
     { test: "/user/insert", eyebrow: "Equipe", title: "Novo usuário", blurb: "Usuário com acesso a este painel." },
     { test: "/user/show", eyebrow: "Equipe", title: "Editar usuário", blurb: "Nome, permissão, status e provedor desta conta." },
     { test: "/users", eyebrow: "Equipe", title: "Usuários", blurb: "Quem administra o painel." },
@@ -84,7 +88,7 @@ function chromeFor(pathname: string | null) {
 }
 
 function isActive(href: string, pathname: string) {
-  if (pathname.startsWith("/device")) return href === "/device/insert";
+  if (pathname.startsWith("/device")) return href === "/devices";
   if (pathname.includes("/hotspot")) return href === "/hotspots";
   if (href === "/providers") return pathname.startsWith("/provider") && !pathname.includes("/hotspot");
   if (href === "/plans") return pathname.startsWith("/plan");
@@ -98,6 +102,7 @@ function isActive(href: string, pathname: string) {
 
 const SideBar = ({ children }: SideBarProps) => {
   const [expand, setExpand] = useState(true);
+  const session = useAuthSession();
   const pathname = usePathname();
   const router = useRouter();
   const chrome = chromeFor(pathname);
@@ -106,6 +111,11 @@ const SideBar = ({ children }: SideBarProps) => {
     day: "numeric",
     month: "long",
   });
+
+  const menu = useMemo(
+    () => NAV.filter((item) => navVisible(session.permission, item.href)),
+    [session.permission]
+  );
 
   const handleLogout = async () => {
     await userLogout();
@@ -125,13 +135,19 @@ const SideBar = ({ children }: SideBarProps) => {
           </span>
           <div className="app-brand-copy">
             <strong>HOTSPOT</strong>
-            <span>Operação</span>
+            <span>{session.name ? session.name.split(" ")[0] : "Operação"}</span>
           </div>
         </div>
 
-        <p className="nav-section">Menu</p>
+        {session.permission ? (
+          <p className="nav-section" title={permissionLabel(session.permission)}>
+            {permissionLabel(session.permission)}
+          </p>
+        ) : (
+          <p className="nav-section">Menu</p>
+        )}
         <nav className="app-menu" aria-label="Principal">
-          {NAV.map((item) => {
+          {menu.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href, pathname);
             return (
@@ -172,9 +188,16 @@ const SideBar = ({ children }: SideBarProps) => {
             <h1 suppressHydrationWarning>{chrome.title}</h1>
             <p suppressHydrationWarning>{chrome.blurb}</p>
           </div>
-          <p className="topbar-date" suppressHydrationWarning>
-            {today}
-          </p>
+          <div style={{ textAlign: "right" }}>
+            <p className="topbar-date" suppressHydrationWarning>
+              {today}
+            </p>
+            {session.permission ? (
+              <p className="page-lead" style={{ margin: "4px 0 0" }} suppressHydrationWarning>
+                {permissionLabel(session.permission)}
+              </p>
+            ) : null}
+          </div>
         </header>
         <div className="app-content">{children}</div>
       </div>

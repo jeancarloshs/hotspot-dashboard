@@ -6,11 +6,18 @@ import { getAllUsers } from "@/actions/get-all-users";
 import { updateUser } from "@/actions/update-user";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList } from "@/app/components/_ui/resource/ResourceTable";
+import { useAcl } from "@/app/hooks/use-acl";
 import IProvider from "@/app/interface/IProviders";
 import { messageFrom } from "@/app/lib/message";
-import { PERMISSIONS, USER_STATUSES, permissionLabel } from "@/app/lib/user-options";
+import {
+  PERMISSION_HINTS,
+  PERMISSIONS,
+  USER_STATUSES,
+  assignablePermissions,
+  permissionLabel,
+} from "@/app/lib/user-options";
 import { useRouter } from "next/navigation";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useState } from "react";
 
 type SystemUser = {
   id?: number;
@@ -23,8 +30,13 @@ type SystemUser = {
 
 const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const router = useRouter();
+  const { permission: actorPermission, can } = useAcl();
   const id = React.use(params).slug[0];
   const [ready, setReady] = useState(false);
+  const options = useMemo(
+    () => assignablePermissions(actorPermission),
+    [actorPermission]
+  );
   const [missing, setMissing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -119,7 +131,7 @@ const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
     );
   }
 
-  const knownPermission = PERMISSIONS.includes(form.permission as (typeof PERMISSIONS)[number]);
+  const canDelete = can("users.delete");
 
   return (
     <SideBar>
@@ -134,9 +146,16 @@ const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
           <label>
             Permissão
             <select value={form.permission} onChange={(event) => setField("permission", event.target.value)}>
-              {!knownPermission && form.permission ? <option value={form.permission}>{permissionLabel(form.permission)}</option> : null}
-              {PERMISSIONS.map((permission) => (
-                <option key={permission} value={permission}>{permissionLabel(permission)}</option>
+              {!options.includes(form.permission) && form.permission ? (
+                <option value={form.permission}>{permissionLabel(form.permission)}</option>
+              ) : null}
+              {options.map((permission) => (
+                <option key={permission} value={permission}>
+                  {permissionLabel(permission)}
+                  {PERMISSIONS.includes(permission as (typeof PERMISSIONS)[number])
+                    ? ` — ${PERMISSION_HINTS[permission as (typeof PERMISSIONS)[number]]}`
+                    : ""}
+                </option>
               ))}
             </select>
           </label>
@@ -157,7 +176,7 @@ const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
           </label>
 
           {error ? <p className="error-message form-span">{error}</p> : null}
-          {confirmDelete ? (
+          {canDelete && confirmDelete ? (
             <div className="confirm-reboot form-full">
               <p>Excluir {form.name || "este usuário"}?</p>
               <div className="form-actions">
@@ -170,9 +189,9 @@ const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
           ) : null}
           <div className="form-actions">
             <button type="button" className="btn" onClick={() => router.push("/users")}>Voltar</button>
-            {confirmDelete ? null : (
+            {canDelete && !confirmDelete ? (
               <button type="button" className="btn btn--danger" onClick={() => setConfirmDelete(true)}>Excluir usuário</button>
-            )}
+            ) : null}
             <button type="submit" className="btn btn--solid" disabled={saving}>{saving ? "Salvando..." : "Salvar usuário"}</button>
           </div>
         </form>

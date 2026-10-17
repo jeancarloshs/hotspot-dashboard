@@ -32,6 +32,23 @@ export async function getAllOrders(filters?: { hsID?: number; status?: string })
   return response.status >= 200 && response.status < 300 ? response.data : null;
 }
 
+export async function getPaymentReports(filters?: {
+  hsID?: number;
+  from?: string;
+  to?: string;
+}) {
+  const params = new URLSearchParams();
+  if (filters?.hsID != null) params.set("hsID", String(filters.hsID));
+  if (filters?.from) params.set("from", filters.from);
+  if (filters?.to) params.set("to", filters.to);
+  const search = params.toString();
+  const response = await apiRequest({
+    path: `/reports/payments${search ? `?${search}` : ""}`,
+    method: "GET",
+  });
+  return response.status >= 200 && response.status < 300 ? response.data : null;
+}
+
 export async function getOrder(id: string) {
   const response = await apiRequest({ path: `/order/${id}`, method: "GET" });
   return response.status >= 200 && response.status < 300 ? response.data : null;

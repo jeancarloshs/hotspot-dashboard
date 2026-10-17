@@ -4,14 +4,22 @@ import { createUser } from "@/actions/create-user";
 import { getAllProviders } from "@/actions/get-all-provideres";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList } from "@/app/components/_ui/resource/ResourceTable";
+import { useAcl } from "@/app/hooks/use-acl";
 import IProvider from "@/app/interface/IProviders";
 import { messageFrom } from "@/app/lib/message";
-import { PERMISSIONS, USER_STATUSES, permissionLabel } from "@/app/lib/user-options";
+import {
+  PERMISSION_HINTS,
+  PERMISSIONS,
+  USER_STATUSES,
+  assignablePermissions,
+  permissionLabel,
+} from "@/app/lib/user-options";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 const InsertUserPage = () => {
   const router = useRouter();
+  const { permission: actorPermission } = useAcl();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [providers, setProviders] = useState<IProvider[]>([]);
@@ -19,10 +27,15 @@ const InsertUserPage = () => {
     name: "",
     email: "",
     password: "",
-    permission: "administrador",
+    permission: "suporte",
     status: "ativo",
     ispID: "",
   });
+
+  const options = useMemo(
+    () => assignablePermissions(actorPermission),
+    [actorPermission]
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -31,6 +44,12 @@ const InsertUserPage = () => {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (options.length && !options.includes(formData.permission)) {
+      setFormData((current) => ({ ...current, permission: options[0] }));
+    }
+  }, [options, formData.permission]);
 
   const setField = (key: keyof typeof formData, value: string) => {
     setFormData((current) => ({ ...current, [key]: value }));
@@ -70,8 +89,13 @@ const InsertUserPage = () => {
           <label>
             Permissão
             <select value={formData.permission} onChange={(event) => setField("permission", event.target.value)}>
-              {PERMISSIONS.map((permission) => (
-                <option key={permission} value={permission}>{permissionLabel(permission)}</option>
+              {options.map((permission) => (
+                <option key={permission} value={permission}>
+                  {permissionLabel(permission)}
+                  {PERMISSIONS.includes(permission as (typeof PERMISSIONS)[number])
+                    ? ` — ${PERMISSION_HINTS[permission as (typeof PERMISSIONS)[number]]}`
+                    : ""}
+                </option>
               ))}
             </select>
           </label>

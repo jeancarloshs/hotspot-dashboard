@@ -2,9 +2,11 @@
 
 import { getAllHotspots } from "@/actions/get-all-hotspots";
 import { getAllPlans } from "@/actions/plans";
-import { deleteVoucher, getAllVouchers } from "@/actions/vouchers";
+import { deleteVoucher, exportVoucherBatch, getAllVouchers, VoucherBatchExport } from "@/actions/vouchers";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { useAcl } from "@/app/hooks/use-acl";
+import { messageFrom } from "@/app/lib/message";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -15,6 +17,7 @@ type VoucherRow = {
   password?: string;
   status?: string;
   expires_at?: string;
+  batch?: string | null;
   planID?: number;
   hsID?: number;
   plan?: { name?: string };
@@ -23,14 +26,19 @@ type VoucherRow = {
 
 const STATUSES = ["", "ativo", "usado", "expirado", "cancelado", "inativo", "deletado"];
 
-function messageFrom(data: unknown) {
-  if (typeof data === "string") return data;
-  if (data && typeof data === "object" && "message" in data && typeof data.message === "string") return data.message;
-  return "Não foi possível excluir o voucher.";
+function downloadCsv(payload: VoucherBatchExport) {
+  const blob = new Blob([payload.csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = payload.filename || `vouchers-${payload.batch}.csv`;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 const VouchersPage = () => {
   const router = useRouter();
+  const { can } = useAcl();
   const [vouchers, setVouchers] = useState<VoucherRow[]>([]);
   const [plans, setPlans] = useState<{ id?: number; name?: string }[]>([]);
   const [hotspots, setHotspots] = useState<{ id?: number; nome?: string }[]>([]);
@@ -40,6 +48,7 @@ const VouchersPage = () => {
   const [hsID, setHsID] = useState("");
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [exportingBatch, setExportingBatch] = useState<string | null>(null);
 
   const load = async () => {
     const [voucherResponse, planResponse, hotspotResponse] = await Promise.all([
@@ -64,11 +73,19 @@ const VouchersPage = () => {
     const term = query.trim().toLowerCase();
     if (!term) return vouchers;
     return vouchers.filter((voucher) =>
-      [voucher.code, voucher.password, voucher.status, voucher.plan?.name, voucher.hotspot?.nome]
+      [voucher.code, voucher.password, voucher.status, voucher.batch, voucher.plan?.name, voucher.hotspot?.nome]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term))
     );
   }, [vouchers, query]);
+
+  const batches = useMemo(() => {
+    const values = new Set<string>();
+    for (const voucher of vouchers) {
+      if (voucher.batch) values.add(voucher.batch);
+    }
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [vouchers]);
 
   const handleDelete = async (id?: number) => {
     if (!id) return;
@@ -80,8 +97,24 @@ const VouchersPage = () => {
       setDeletingId(null);
       return;
     }
-    setError(messageFrom(response.data));
+    setError(messageFrom(response.data, "Não foi possível excluir o voucher."));
     setDeletingId(null);
+  };
+
+  const handleExport = async (batch: string) => {
+    setExportingBatch(batch);
+    setError("");
+    const response = await exportVoucherBatch(batch);
+    if (response.status >= 200 && response.status < 300 && response.data && typeof response.data === "object") {
+      const payload = response.data as VoucherBatchExport;
+      if (payload.csv) {
+        downloadCsv(payload);
+        setExportingBatch(null);
+        return;
+      }
+    }
+    setError(messageFrom(response.data, "Não foi possível exportar o lote."));
+    setExportingBatch(null);
   };
 
   return (
@@ -99,9 +132,11 @@ const VouchersPage = () => {
           <button type="button" className="btn" onClick={() => router.push("/voucher/redeem")}>
             Resgatar
           </button>
-          <button type="button" className="btn btn--solid" onClick={() => router.push("/voucher/generate")}>
-            Gerar lote
-          </button>
+          {can("vouchers.write") ? (
+            <button type="button" className="btn btn--solid" onClick={() => router.push("/voucher/generate")}>
+              Gerar lote
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -132,6 +167,23 @@ const VouchersPage = () => {
             ))}
           </select>
         </label>
+        {can("vouchers.export") && batches.length > 0 ? (
+          <label>
+            Exportar lote
+            <select
+              value=""
+              disabled={Boolean(exportingBatch)}
+              onChange={(event) => {
+                if (event.target.value) handleExport(event.target.value);
+              }}
+            >
+              <option value="">{exportingBatch ? "Exportando..." : "Escolher lote"}</option>
+              {batches.map((batch) => (
+                <option key={batch} value={batch}>{batch}</option>
+              ))}
+            </select>
+          </label>
+        ) : null}
       </div>
 
       {error ? <p className="error-message">{error}</p> : null}
@@ -153,6 +205,7 @@ const VouchersPage = () => {
           },
           { key: "plano", header: "Plano", render: (row) => row.plan?.name || row.planID || "—" },
           { key: "hotspot", header: "Hotspot", render: (row) => row.hotspot?.nome || row.hsID || "—" },
+          { key: "lote", header: "Lote", render: (row) => row.batch || "—" },
           { key: "expira", header: "Expira", render: (row) => row.expires_at ? new Date(row.expires_at).toLocaleString("pt-BR") : "—" },
           { key: "status", header: "Status", render: (row) => <StatusPill value={row.status} /> },
           {
@@ -161,16 +214,29 @@ const VouchersPage = () => {
             align: "right",
             render: (row) => (
               <div className="row-links">
+                {can("vouchers.export") && row.batch ? (
+                  <button
+                    type="button"
+                    className="text-link"
+                    style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }}
+                    disabled={exportingBatch === row.batch}
+                    onClick={() => handleExport(row.batch!)}
+                  >
+                    {exportingBatch === row.batch ? "CSV..." : "CSV"}
+                  </button>
+                ) : null}
                 <Link href={`/voucher/show/${row.id}`}>Abrir</Link>
-                <button
-                  type="button"
-                  className="text-link"
-                  style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }}
-                  disabled={deletingId === row.id}
-                  onClick={() => handleDelete(row.id)}
-                >
-                  {deletingId === row.id ? "Excluindo..." : "Excluir"}
-                </button>
+                {can("vouchers.write") ? (
+                  <button
+                    type="button"
+                    className="text-link"
+                    style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }}
+                    disabled={deletingId === row.id}
+                    onClick={() => handleDelete(row.id)}
+                  >
+                    {deletingId === row.id ? "Excluindo..." : "Excluir"}
+                  </button>
+                ) : null}
               </div>
             ),
           },

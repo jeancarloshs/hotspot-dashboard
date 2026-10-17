@@ -1,7 +1,6 @@
 "use client";
 
 import { loginUser } from "@/actions/user-login";
-import { Roles } from "@/app/interface/IStatusList";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -19,18 +18,12 @@ const LoginPage = () => {
 
     try {
       const response = await loginUser(formData);
-      if (response?.error) {
-        setError(String(response.error));
+      if (response?.error || response.status >= 400) {
+        setError(String(response.error || "E-mail ou senha inválidos."));
         setIsPending(false);
         return;
       }
-      const auth = response?.data?.objAuth;
-      if (auth?.permission === Roles.SUPER_ADMIN) {
-        router.push("/home");
-        return;
-      }
-      setError(auth?.token ? "Esta conta não tem permissão para o painel." : "E-mail ou senha inválidos.");
-      setIsPending(false);
+      router.push("/home");
     } catch {
       setError("Não foi possível entrar agora.");
       setIsPending(false);
@@ -45,9 +38,9 @@ const LoginPage = () => {
           <h1>Hotspot</h1>
           <p>Provedores, pontos de acesso e sessões MikroTik no mesmo lugar.</p>
           <ul className="login-points">
-            <li>Provedores e hotspots</li>
-            <li>Clientes conectados</li>
-            <li>Usuários do sistema</li>
+            <li>Acesso a partir de suporte</li>
+            <li>Menu conforme o nível</li>
+            <li>ISP isolado (exceto super admin)</li>
           </ul>
         </div>
       </section>
@@ -56,7 +49,9 @@ const LoginPage = () => {
         <form className="login-card" onSubmit={handleSubmit}>
           <p className="eyebrow">Acesso</p>
           <h2>Entre na sua conta</h2>
-          <p className="page-lead">Use o e-mail e a senha do usuário do sistema.</p>
+          <p className="page-lead">
+            Use o e-mail do usuário do sistema. Níveis: suporte, moderador, gerente, administrador e super admin.
+          </p>
 
           <div className="login-field">
             <label htmlFor="username">E-mail</label>

@@ -16,6 +16,7 @@ type HotspotRow = {
   ip?: string;
   cidade?: string;
   status?: string;
+  mk_online?: boolean;
 };
 
 type SessionRow = {
@@ -173,6 +174,15 @@ const HomePage = () => {
             columns={[
               { key: "nome", header: "Nome", render: (row) => (<><span className="cell-title">{row.nome || "—"}</span><span className="cell-sub">{row.ip || row.cidade || ""}</span></>) },
               { key: "connected", header: "Conectados", render: (row) => row.connected, align: "right" },
+              {
+                key: "mk",
+                header: "MK",
+                render: (row) => (
+                  <StatusPill
+                    value={row.mk_online === true ? "online" : row.mk_online === false ? "offline" : "—"}
+                  />
+                ),
+              },
               { key: "status", header: "Status", render: (row) => <StatusPill value={row.status} />, align: "right" },
             ]}
           />

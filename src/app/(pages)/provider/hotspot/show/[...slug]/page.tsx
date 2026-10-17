@@ -1,11 +1,15 @@
 "use client";
 
 import { getHotspot } from "@/actions/get-hotspot";
+import { bootstrapHotspot, checkHotspotHealth } from "@/actions/hotspot-ops";
+import { getAllPlans } from "@/actions/plans";
 import { MikrotikTool, queryMikrotik } from "@/actions/query-mikrotik";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
-import { StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { asList, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { useAcl } from "@/app/hooks/use-acl";
+import { messageFrom } from "@/app/lib/message";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 
 type HotspotRecord = {
   id?: number;
@@ -15,6 +19,13 @@ type HotspotRecord = {
   estado?: string;
   endereco?: string;
   status?: string;
+  mk_online?: boolean;
+  mk_last_check?: string | null;
+  mk_last_error?: string | null;
+  mk_uptime?: string | null;
+  mk_version?: string | null;
+  mk_cpu_load?: string | null;
+  mk_free_memory_mb?: number | null;
   isp?: { nome?: string };
 };
 
@@ -34,6 +45,7 @@ const GROUPS: { label: string; tools: { id: MikrotikTool; label: string }[] }[] 
       { id: "active", label: "Ativos" },
       { id: "profiles", label: "Perfis" },
       { id: "servers", label: "Servidores" },
+      { id: "walledGarden", label: "Walled garden" },
     ],
   },
   {
@@ -172,6 +184,7 @@ function ResultView({ payload }: { payload: unknown }) {
 
 const HotspotPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const resolvedParams = React.use(params);
+  const { can } = useAcl();
   const id = resolvedParams.slug[0];
   const [hotspot, setHotspot] = useState<HotspotRecord | null>(null);
   const [missing, setMissing] = useState(false);
@@ -182,6 +195,25 @@ const HotspotPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const [target, setTarget] = useState("1.1.1.1");
   const [count, setCount] = useState(5);
   const [confirmReboot, setConfirmReboot] = useState(false);
+  const [checkingHealth, setCheckingHealth] = useState(false);
+  const [bootstrapping, setBootstrapping] = useState(false);
+  const [bootstrapMsg, setBootstrapMsg] = useState("");
+  const [plans, setPlans] = useState<{ id?: number; name?: string }[]>([]);
+  const [bootstrapForm, setBootstrapForm] = useState({
+    createServer: false,
+    interface: "bridge-hotspot",
+    serverName: "",
+    addressPool: "",
+    walledGardenHosts: "",
+    planIDs: [] as number[],
+  });
+
+  const refreshHotspot = async () => {
+    const response = await getHotspot(id);
+    const record = unwrapHotspot(response);
+    if (record) setHotspot(record);
+    return record;
+  };
 
   const run = async (next: MikrotikTool, address = hotspot?.ip || "") => {
     if (!address) return;
@@ -198,8 +230,9 @@ const HotspotPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const response = await getHotspot(id);
+      const [response, planResponse] = await Promise.all([getHotspot(id), getAllPlans()]);
       if (cancelled) return;
+      setPlans(asList(planResponse));
       const record = unwrapHotspot(response);
       if (!record) {
         setMissing(true);
@@ -222,6 +255,45 @@ const HotspotPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   }, [id]);
 
   const needsTarget = tool === "ping" || tool === "tracert";
+
+  const handleApiHealth = async () => {
+    setCheckingHealth(true);
+    setError("");
+    const response = await checkHotspotHealth(id);
+    if (response.status >= 200 && response.status < 300) {
+      await refreshHotspot();
+      setCheckingHealth(false);
+      return;
+    }
+    setError(messageFrom(response.data, "Não foi possível atualizar o health."));
+    setCheckingHealth(false);
+  };
+
+  const handleBootstrap = async (event: FormEvent) => {
+    event.preventDefault();
+    setBootstrapping(true);
+    setBootstrapMsg("");
+    setError("");
+    const hosts = bootstrapForm.walledGardenHosts
+      .split(/[\n,;]+/)
+      .map((host) => host.trim())
+      .filter(Boolean);
+    const response = await bootstrapHotspot(id, {
+      createServer: bootstrapForm.createServer,
+      interface: bootstrapForm.createServer ? bootstrapForm.interface : undefined,
+      serverName: bootstrapForm.serverName || undefined,
+      addressPool: bootstrapForm.addressPool || undefined,
+      walledGardenHosts: hosts.length ? hosts : undefined,
+      planIDs: bootstrapForm.planIDs.length ? bootstrapForm.planIDs : undefined,
+    });
+    if (response.status >= 200 && response.status < 300) {
+      setBootstrapMsg("Bootstrap concluído.");
+      setBootstrapping(false);
+      return;
+    }
+    setError(messageFrom(response.data, "Não foi possível executar o bootstrap."));
+    setBootstrapping(false);
+  };
 
   return (
     <SideBar>
@@ -246,15 +318,142 @@ const HotspotPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
               <span>Status</span>
               <strong><StatusPill value={hotspot.status} /></strong>
             </div>
+            <div className="fact">
+              <span>MikroTik</span>
+              <strong>
+                <StatusPill value={hotspot.mk_online === true ? "online" : hotspot.mk_online === false ? "offline" : "—"} />
+              </strong>
+            </div>
+            <div className="fact">
+              <span>Último check</span>
+              <strong>
+                {hotspot.mk_last_check
+                  ? new Date(hotspot.mk_last_check).toLocaleString("pt-BR")
+                  : "—"}
+              </strong>
+            </div>
+            <div className="fact">
+              <span>CPU / Memória</span>
+              <strong>
+                {[hotspot.mk_cpu_load, hotspot.mk_free_memory_mb != null ? `${hotspot.mk_free_memory_mb} MB` : null]
+                  .filter(Boolean)
+                  .join(" · ") || "—"}
+              </strong>
+            </div>
+            <div className="fact">
+              <span>Uptime / Versão</span>
+              <strong>
+                {[hotspot.mk_uptime, hotspot.mk_version].filter(Boolean).join(" · ") || "—"}
+              </strong>
+            </div>
           </section>
+
+          {hotspot.mk_last_error ? (
+            <p className="error-message">{hotspot.mk_last_error}</p>
+          ) : null}
 
           <div className="page-toolbar">
             <p className="page-lead">As consultas leem o equipamento. A edição altera hotspot, rede, firewall e VPN neste MikroTik.</p>
             <div className="toolbar-actions">
-              <Link className="btn" href={`/provider/hotspot/cadastro/${id}`}>Cadastro</Link>
-              <Link className="btn btn--solid" href={`/provider/hotspot/edit/${id}`}>Editar MikroTik</Link>
+              <button type="button" className="btn" disabled={checkingHealth} onClick={handleApiHealth}>
+                {checkingHealth ? "Checando..." : "Atualizar health"}
+              </button>
+              {can("hotspots.write") ? (
+                <Link className="btn" href={`/provider/hotspot/cadastro/${id}`}>Cadastro</Link>
+              ) : null}
+              {can("mikrotik.write") ? (
+                <Link className="btn btn--solid" href={`/provider/hotspot/edit/${id}`}>Editar MikroTik</Link>
+              ) : null}
             </div>
           </div>
+
+          {can("hotspots.bootstrap") ? (
+          <section className="panel" style={{ marginBottom: 18 }}>
+            <div className="panel-head">
+              <div>
+                <h2>Bootstrap do portal</h2>
+                <span>Servidor opcional, walled garden e sync de planos no MikroTik</span>
+              </div>
+            </div>
+            <form className="diag-form" style={{ padding: 18 }} onSubmit={handleBootstrap}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={bootstrapForm.createServer}
+                  onChange={(event) =>
+                    setBootstrapForm((current) => ({ ...current, createServer: event.target.checked }))
+                  }
+                />
+                Criar servidor hotspot
+              </label>
+              {bootstrapForm.createServer ? (
+                <>
+                  <label>
+                    Interface
+                    <input
+                      value={bootstrapForm.interface}
+                      onChange={(event) =>
+                        setBootstrapForm((current) => ({ ...current, interface: event.target.value }))
+                      }
+                      required
+                    />
+                  </label>
+                  <label>
+                    Nome do servidor
+                    <input
+                      value={bootstrapForm.serverName}
+                      onChange={(event) =>
+                        setBootstrapForm((current) => ({ ...current, serverName: event.target.value }))
+                      }
+                      placeholder={hotspot.nome || "hotspot1"}
+                    />
+                  </label>
+                  <label>
+                    Address pool
+                    <input
+                      value={bootstrapForm.addressPool}
+                      onChange={(event) =>
+                        setBootstrapForm((current) => ({ ...current, addressPool: event.target.value }))
+                      }
+                      placeholder="dhcp-hotspot"
+                    />
+                  </label>
+                </>
+              ) : null}
+              <label>
+                Hosts walled garden
+                <textarea
+                  value={bootstrapForm.walledGardenHosts}
+                  onChange={(event) =>
+                    setBootstrapForm((current) => ({ ...current, walledGardenHosts: event.target.value }))
+                  }
+                  placeholder={"api.mercadopago.com\nwww.mercadopago.com"}
+                  rows={3}
+                />
+              </label>
+              <label>
+                Planos para sync
+                <select
+                  multiple
+                  value={bootstrapForm.planIDs.map(String)}
+                  onChange={(event) => {
+                    const selected = Array.from(event.target.selectedOptions).map((option) => Number(option.value));
+                    setBootstrapForm((current) => ({ ...current, planIDs: selected }));
+                  }}
+                  size={Math.min(6, Math.max(3, plans.length || 3))}
+                >
+                  {plans.map((plan) => (
+                    <option key={plan.id} value={plan.id}>{plan.name}</option>
+                  ))}
+                </select>
+              </label>
+              <button type="submit" className="btn btn--solid" disabled={bootstrapping || !hotspot.ip}>
+                {bootstrapping ? "Executando..." : "Executar bootstrap"}
+              </button>
+              {bootstrapMsg ? <p className="page-lead">{bootstrapMsg}</p> : null}
+            </form>
+          </section>
+          ) : null}
 
           <section className="panel">
             <div className="tool-board">

@@ -64,6 +64,7 @@ const CONFIG_RESOURCES = new Set([
   "hotspot/{ip}/users/active",
   "{ip}/hotspot/profiles",
   "{ip}/hotspot",
+  "{ip}/hotspot/walled-garden",
   "{ip}/firewall/filter",
   "{ip}/firewall/nat",
   "{ip}/firewall/mangle",

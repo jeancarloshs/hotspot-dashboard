@@ -2,6 +2,7 @@
 
 import ProdConfig from "@/app/api/config/prod_config";
 import { refreshAccessToken } from "@/actions/refresh-token";
+import { clearAuthSession } from "@/actions/session";
 import axios from "axios";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -15,6 +16,7 @@ async function clearSession() {
   const cookieStore = await cookies();
   cookieStore.delete("token");
   cookieStore.delete("refreshToken");
+  await clearAuthSession();
 }
 
 export async function apiRequest(options: {

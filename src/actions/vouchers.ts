@@ -57,3 +57,18 @@ export async function redeemVoucher(data: VoucherRedeemInput) {
     auth: false,
   });
 }
+
+export type VoucherBatchExport = {
+  batch: string;
+  quantity: number;
+  filename: string;
+  csv: string;
+};
+
+export async function exportVoucherBatch(batch: string) {
+  const encoded = encodeURIComponent(batch.trim());
+  return apiRequest({
+    path: `/vouchers/batch/${encoded}/export?format=json`,
+    method: "GET",
+  });
+}

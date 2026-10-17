@@ -3,6 +3,7 @@
 import { cancelPayment, getOrder, retryProvision, simulatePayment, syncPayment } from "@/actions/orders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { useAcl } from "@/app/hooks/use-acl";
 import {
   isClosedOrderStatus,
   isMercadoPago,
@@ -66,6 +67,7 @@ function money(value?: string | number, currency = "BRL") {
 
 const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const router = useRouter();
+  const { can } = useAcl();
   const id = React.use(params).slug[0];
   const [order, setOrder] = useState<OrderRecord | null>(null);
   const [missing, setMissing] = useState(false);
@@ -130,10 +132,13 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const closed = isClosedOrderStatus(status);
   const meta = order.metadata && typeof order.metadata === "object" ? order.metadata : null;
   const voucherCode = meta?.voucher_code || meta?.credentials?.username;
-  const canSimulate = order.gateway?.sandbox !== false && status === "pendente";
+  const canSimulate = can("orders.simulate") && order.gateway?.sandbox !== false && status === "pendente";
   const canSync = isMercadoPago(order.gateway?.provider) && !closed;
-  const canRetry = status === "ativo" && Boolean(order.hotspot?.id || order.hsID) && meta?.mikrotik_provisioned !== true;
-  const canCancel = !closed;
+  const canRetry = can("orders.retry")
+    && status === "ativo"
+    && Boolean(order.hotspot?.id || order.hsID)
+    && meta?.mikrotik_provisioned !== true;
+  const canCancel = can("orders.cancel") && !closed;
   const busy = pending !== null;
   const payLabel = paymentStatusLabel(order.payment_status, order.payment_status_label, order.status);
 
