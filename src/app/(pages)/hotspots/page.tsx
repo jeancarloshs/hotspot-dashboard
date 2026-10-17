@@ -59,14 +59,16 @@ const HotspotsPage = () => {
     if (!id) return;
     setCheckingId(id);
     setError("");
-    const response = await checkHotspotHealth(id);
-    if (response.status >= 200 && response.status < 300) {
-      await load();
+    try {
+      const response = await checkHotspotHealth(id);
+      if (response.status >= 200 && response.status < 300) {
+        await load();
+        return;
+      }
+      setError(messageFrom(response.data, "Não foi possível verificar o hotspot."));
+    } finally {
       setCheckingId(null);
-      return;
     }
-    setError(messageFrom(response.data, "Não foi possível verificar o hotspot."));
-    setCheckingId(null);
   };
 
   return (
@@ -109,16 +111,27 @@ const HotspotsPage = () => {
           {
             key: "mk",
             header: "MikroTik",
-            render: (row) => (
-              <>
-                <StatusPill value={onlineLabel(row)} />
-                <span className="cell-sub">
-                  {row.mk_last_check
-                    ? new Date(row.mk_last_check).toLocaleString("pt-BR")
-                    : row.mk_last_error || "Sem check"}
-                </span>
-              </>
-            ),
+            render: (row) => {
+              const checking = checkingId === row.id;
+              if (checking) {
+                return (
+                  <>
+                    <StatusPill value="checando" />
+                    <span className="cell-sub">Verificando conexão…</span>
+                  </>
+                );
+              }
+              return (
+                <>
+                  <StatusPill value={onlineLabel(row)} />
+                  <span className="cell-sub">
+                    {row.mk_last_check
+                      ? new Date(row.mk_last_check).toLocaleString("pt-BR")
+                      : row.mk_last_error || "Sem check"}
+                  </span>
+                </>
+              );
+            },
           },
           { key: "status", header: "Status", render: (row) => <StatusPill value={row.status} /> },
           {
@@ -129,6 +142,7 @@ const HotspotsPage = () => {
               const checking = checkingId === row.id;
               return (
                 <RowActionsMenu
+                  label={checking ? "Checando..." : "Ações"}
                   items={[
                     {
                       key: "health",

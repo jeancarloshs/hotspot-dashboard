@@ -60,7 +60,8 @@ function statusTone(value: string) {
     normalized.includes("pend") ||
     normalized === "em_aberto" ||
     normalized.includes("em aberto") ||
-    normalized.includes("aguardando")
+    normalized.includes("aguardando") ||
+    normalized.includes("checand")
   ) {
     return "wait";
   }
