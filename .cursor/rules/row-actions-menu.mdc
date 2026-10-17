@@ -1,0 +1,55 @@
+---
+description: Use RowActionsMenu for table/list action columns with 2+ options
+globs: src/app/(pages)/**/*.tsx
+alwaysApply: false
+---
+
+# Row actions menu
+
+When a table or list row has **2 or more** action options (links or buttons), use `RowActionsMenu` — do not render a flat row of links.
+
+Component: `@/app/components/_ui/resource/RowActionsMenu`  
+Styles: `.row-menu*` in `src/app/globals.css`
+
+## Rules
+
+- **2+ visible actions** → `RowActionsMenu` with `items`
+- **1 action** → plain `row-links` / `Link` / `text-link` is fine (`RowActionsMenu` also falls back to that)
+- Prefer `href` for navigation; use `onClick` for side effects (health check, delete, etc.)
+- Hide conditional items with `hidden: true` (do not leave empty slots)
+- Keep trigger label default `"Ações"` unless the context needs another short label
+- Do not reinvent dropdowns with rsuite `Whisper`/`Dropdown` or ad-hoc absolute menus for this pattern
+
+## Example
+
+```tsx
+import { RowActionsMenu } from "@/app/components/_ui/resource/RowActionsMenu";
+
+// ❌ BAD — flat links when there are 2+
+<div className="row-links">
+  <button type="button" className="text-link" onClick={onHealth}>Health</button>
+  <Link href={`/provider/hotspots/${row.isp.id}`}>Do provedor</Link>
+  <Link href={`/provider/hotspot/cadastro/${row.id}`}>Cadastro</Link>
+  <Link href={`/provider/hotspot/show/${row.id}`}>Abrir</Link>
+</div>
+
+// ✅ GOOD
+<RowActionsMenu
+  items={[
+    {
+      key: "health",
+      label: checking ? "Checando..." : "Health",
+      onClick: () => onHealth(row.id),
+      disabled: checking,
+    },
+    {
+      key: "provider",
+      label: "Do provedor",
+      href: `/provider/hotspots/${row.isp?.id}`,
+      hidden: !row.isp?.id,
+    },
+    { key: "cadastro", label: "Cadastro", href: `/provider/hotspot/cadastro/${row.id}` },
+    { key: "abrir", label: "Abrir", href: `/provider/hotspot/show/${row.id}` },
+  ]}
+/>
+```

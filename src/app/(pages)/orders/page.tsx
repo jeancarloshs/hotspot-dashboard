@@ -1,11 +1,16 @@
 "use client";
 
 import { getAllHotspots } from "@/actions/get-all-hotspots";
-import { getAllOrders, getPaymentReports } from "@/actions/orders";
+import { getAllOrders } from "@/actions/orders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
 import { useAcl } from "@/app/hooks/use-acl";
-import { ORDER_FILTER_STATUSES, paymentStatusLabel } from "@/app/lib/order-payment";
+import {
+  isPaidOrderStatus,
+  normalizeOrderStatus,
+  ORDER_FILTER_STATUSES,
+  paymentStatusLabel,
+} from "@/app/lib/order-payment";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -21,24 +26,61 @@ type OrderRow = {
   payment_method?: string;
   paid_at?: string;
   created_at?: string;
+  mikrotik_provisioned?: boolean;
+  mikrotik_error?: string | null;
+  provision_status?: string;
   plan?: { name?: string };
   gateway?: { name?: string; provider?: string; sandbox?: boolean };
   hotspot?: { nome?: string };
-};
-
-type ReportTotals = {
-  orders?: number;
-  paid?: number;
-  pending?: number;
-  revenue?: number;
-  mikrotik_provisioned?: number;
-  mikrotik_pending_or_failed?: number;
+  metadata?: {
+    mikrotik_provisioned?: boolean;
+    mikrotik_error?: string | null;
+  } | null;
 };
 
 function money(value?: string | number, currency = "BRL") {
   const amount = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(amount)) return value != null && value !== "" ? String(value) : "—";
   return amount.toLocaleString("pt-BR", { style: "currency", currency: currency || "BRL" });
+}
+
+function orderAmount(value?: string | number) {
+  const amount = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function isProvisioned(order: OrderRow) {
+  if (order.metadata?.mikrotik_provisioned === true || order.mikrotik_provisioned === true) return true;
+  return String(order.provision_status || "").toLowerCase() === "ready";
+}
+
+function totalsFromOrders(orders: OrderRow[]) {
+  let paid = 0;
+  let pending = 0;
+  let revenue = 0;
+  let mikrotik_provisioned = 0;
+  let mikrotik_pending_or_failed = 0;
+
+  for (const order of orders) {
+    const status = normalizeOrderStatus(order.status);
+    if (isPaidOrderStatus(status)) {
+      paid += 1;
+      revenue += orderAmount(order.value);
+      if (isProvisioned(order)) mikrotik_provisioned += 1;
+      else mikrotik_pending_or_failed += 1;
+    } else if (status === "pendente") {
+      pending += 1;
+    }
+  }
+
+  return {
+    orders: orders.length,
+    paid,
+    pending,
+    revenue,
+    mikrotik_provisioned,
+    mikrotik_pending_or_failed,
+  };
 }
 
 const OrdersPage = () => {
@@ -49,7 +91,6 @@ const OrdersPage = () => {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [hsID, setHsID] = useState("");
-  const [totals, setTotals] = useState<ReportTotals | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -58,20 +99,20 @@ const OrdersPage = () => {
         status: status || undefined,
         hsID: hsID ? Number(hsID) : undefined,
       };
-      const [orderResponse, hotspotResponse, reportResponse] = await Promise.all([
+      const [orderResponse, hotspotResponse] = await Promise.all([
         getAllOrders(filters),
         getAllHotspots(),
-        can("reports.read") ? getPaymentReports({ hsID: filters.hsID }) : Promise.resolve(null),
       ]);
       setOrders(asList<OrderRow>(orderResponse));
       setHotspots(asList(hotspotResponse));
-      const report = reportResponse && typeof reportResponse === "object"
-        ? (reportResponse as { totals?: ReportTotals }).totals ?? null
-        : null;
-      setTotals(report);
     };
     load();
   }, [status, hsID, ready, permission]);
+
+  const totals = useMemo(
+    () => (can("reports.read") ? totalsFromOrders(orders) : null),
+    [orders, permission]
+  );
 
   const visible = useMemo(() => {
     const term = query.trim().toLowerCase();

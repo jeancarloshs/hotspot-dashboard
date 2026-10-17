@@ -5,9 +5,9 @@ import { getAllPlans } from "@/actions/plans";
 import { deleteVoucher, exportVoucherBatch, getAllVouchers, VoucherBatchExport } from "@/actions/vouchers";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { RowActionsMenu } from "@/app/components/_ui/resource/RowActionsMenu";
 import { useAcl } from "@/app/hooks/use-acl";
-import { messageFrom } from "@/app/lib/message";
-import Link from "next/link";
+import { useApiFeedback } from "@/app/hooks/use-api-feedback";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -39,6 +39,7 @@ function downloadCsv(payload: VoucherBatchExport) {
 const VouchersPage = () => {
   const router = useRouter();
   const { can } = useAcl();
+  const { error, fromResponse, clearError } = useApiFeedback();
   const [vouchers, setVouchers] = useState<VoucherRow[]>([]);
   const [plans, setPlans] = useState<{ id?: number; name?: string }[]>([]);
   const [hotspots, setHotspots] = useState<{ id?: number; nome?: string }[]>([]);
@@ -46,7 +47,6 @@ const VouchersPage = () => {
   const [status, setStatus] = useState("");
   const [planID, setPlanID] = useState("");
   const [hsID, setHsID] = useState("");
-  const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [exportingBatch, setExportingBatch] = useState<string | null>(null);
 
@@ -90,20 +90,20 @@ const VouchersPage = () => {
   const handleDelete = async (id?: number) => {
     if (!id) return;
     setDeletingId(id);
-    setError("");
+    clearError();
     const response = await deleteVoucher(String(id));
     if (response.status === 200) {
       await load();
       setDeletingId(null);
       return;
     }
-    setError(messageFrom(response.data, "Não foi possível excluir o voucher."));
+    fromResponse(response.status, response.data, "Não foi possível excluir o voucher.");
     setDeletingId(null);
   };
 
   const handleExport = async (batch: string) => {
     setExportingBatch(batch);
-    setError("");
+    clearError();
     const response = await exportVoucherBatch(batch);
     if (response.status >= 200 && response.status < 300 && response.data && typeof response.data === "object") {
       const payload = response.data as VoucherBatchExport;
@@ -113,7 +113,7 @@ const VouchersPage = () => {
         return;
       }
     }
-    setError(messageFrom(response.data, "Não foi possível exportar o lote."));
+    fromResponse(response.status, response.data, "Não foi possível exportar o lote.");
     setExportingBatch(null);
   };
 
@@ -212,33 +212,35 @@ const VouchersPage = () => {
             key: "acoes",
             header: "Ações",
             align: "right",
-            render: (row) => (
-              <div className="row-links">
-                {can("vouchers.export") && row.batch ? (
-                  <button
-                    type="button"
-                    className="text-link"
-                    style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }}
-                    disabled={exportingBatch === row.batch}
-                    onClick={() => handleExport(row.batch!)}
-                  >
-                    {exportingBatch === row.batch ? "CSV..." : "CSV"}
-                  </button>
-                ) : null}
-                <Link href={`/voucher/show/${row.id}`}>Abrir</Link>
-                {can("vouchers.write") ? (
-                  <button
-                    type="button"
-                    className="text-link"
-                    style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }}
-                    disabled={deletingId === row.id}
-                    onClick={() => handleDelete(row.id)}
-                  >
-                    {deletingId === row.id ? "Excluindo..." : "Excluir"}
-                  </button>
-                ) : null}
-              </div>
-            ),
+            render: (row) => {
+              const exporting = exportingBatch === row.batch;
+              const deleting = deletingId === row.id;
+              return (
+                <RowActionsMenu
+                  items={[
+                    {
+                      key: "csv",
+                      label: exporting ? "CSV..." : "CSV",
+                      onClick: () => handleExport(row.batch!),
+                      disabled: exporting,
+                      hidden: !can("vouchers.export") || !row.batch,
+                    },
+                    {
+                      key: "abrir",
+                      label: "Abrir",
+                      href: `/voucher/show/${row.id}`,
+                    },
+                    {
+                      key: "excluir",
+                      label: deleting ? "Excluindo..." : "Excluir",
+                      onClick: () => handleDelete(row.id),
+                      disabled: deleting,
+                      hidden: !can("vouchers.write"),
+                    },
+                  ]}
+                />
+              );
+            },
           },
         ]}
       />

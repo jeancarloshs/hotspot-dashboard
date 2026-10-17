@@ -4,8 +4,8 @@ import { getAllHotspots } from "@/actions/get-all-hotspots";
 import { checkHotspotHealth } from "@/actions/hotspot-ops";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { RowActionsMenu } from "@/app/components/_ui/resource/RowActionsMenu";
 import { messageFrom } from "@/app/lib/message";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -125,22 +125,37 @@ const HotspotsPage = () => {
             key: "acoes",
             header: "Ações",
             align: "right",
-            render: (row) => (
-              <div className="row-links">
-                <button
-                  type="button"
-                  className="text-link"
-                  style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }}
-                  disabled={checkingId === row.id}
-                  onClick={() => handleHealth(row.id)}
-                >
-                  {checkingId === row.id ? "Checando..." : "Health"}
-                </button>
-                {row.isp?.id ? <Link href={`/provider/hotspots/${row.isp.id}`}>Do provedor</Link> : null}
-                <Link href={`/provider/hotspot/cadastro/${row.id}`}>Cadastro</Link>
-                <Link href={`/provider/hotspot/show/${row.id}`}>Abrir</Link>
-              </div>
-            ),
+            render: (row) => {
+              const checking = checkingId === row.id;
+              return (
+                <RowActionsMenu
+                  items={[
+                    {
+                      key: "health",
+                      label: checking ? "Checando..." : "Health",
+                      onClick: () => handleHealth(row.id),
+                      disabled: checking,
+                    },
+                    {
+                      key: "provider",
+                      label: "Do provedor",
+                      href: `/provider/hotspots/${row.isp?.id}`,
+                      hidden: !row.isp?.id,
+                    },
+                    {
+                      key: "cadastro",
+                      label: "Cadastro",
+                      href: `/provider/hotspot/cadastro/${row.id}`,
+                    },
+                    {
+                      key: "abrir",
+                      label: "Abrir",
+                      href: `/provider/hotspot/show/${row.id}`,
+                    },
+                  ]}
+                />
+              );
+            },
           },
         ]}
       />

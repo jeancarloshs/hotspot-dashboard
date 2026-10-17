@@ -3,7 +3,7 @@
 import { getAllHotspotsProvider } from "@/actions/get-all-hotspots-provider";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
-import Link from "next/link";
+import { RowActionsMenu } from "@/app/components/_ui/resource/RowActionsMenu";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -100,11 +100,13 @@ const ProviderHotspotsPage = ({ params }: { params: Promise<{ slug: string[] }> 
             header: "Ações",
             align: "right",
             render: (row) => (
-              <div className="row-links">
-                <Link href={`/provider/hotspot/show/${row.id}`}>Consultar</Link>
-                <Link href={`/provider/hotspot/cadastro/${row.id}`}>Cadastro</Link>
-                <Link href={`/provider/hotspot/edit/${row.id}`}>MikroTik</Link>
-              </div>
+              <RowActionsMenu
+                items={[
+                  { key: "consultar", label: "Consultar", href: `/provider/hotspot/show/${row.id}` },
+                  { key: "cadastro", label: "Cadastro", href: `/provider/hotspot/cadastro/${row.id}` },
+                  { key: "mikrotik", label: "MikroTik", href: `/provider/hotspot/edit/${row.id}` },
+                ]}
+              />
             ),
           },
         ]}

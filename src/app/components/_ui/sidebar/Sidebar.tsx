@@ -31,7 +31,7 @@ const NAV = [
   { href: "/hotspots", label: "Hotspots", icon: MdOutlineRouter },
   { href: "/plans", label: "Planos", icon: MdOutlineSell },
   { href: "/vouchers", label: "Vouchers", icon: MdOutlineConfirmationNumber },
-  { href: "/payment-gateways", label: "Pagamentos", icon: MdOutlinePayments },
+  { href: "/payment-gateways", label: "Gateways", icon: MdOutlinePayments },
   { href: "/orders", label: "Pedidos", icon: MdOutlineReceiptLong },
   { href: "/clients", label: "Clientes", icon: MdPeopleOutline },
   { href: "/devices", label: "Dispositivos", icon: MdOutlineDevices },
@@ -52,9 +52,9 @@ function chromeFor(pathname: string | null) {
     { test: "/voucher/redeem", eyebrow: "Vouchers", title: "Resgatar voucher", blurb: "Valida um código em um hotspot." },
     { test: "/voucher/show", eyebrow: "Vouchers", title: "Voucher", blurb: "Detalhes e exclusão do código." },
     { test: "/vouchers", eyebrow: "Acesso", title: "Vouchers", blurb: "Lotes de acesso gerados para os hotspots." },
-    { test: "/payment-gateway/insert", eyebrow: "Pagamentos", title: "Novo gateway", blurb: "Credenciais e webhook do provedor de pagamento." },
-    { test: "/payment-gateway/show", eyebrow: "Pagamentos", title: "Editar gateway", blurb: "Atualização e exclusão do gateway." },
-    { test: "/payment-gateways", eyebrow: "Acesso", title: "Pagamentos", blurb: "Gateways usados na cobrança de planos e vouchers." },
+    { test: "/payment-gateway/insert", eyebrow: "Gateways", title: "Novo gateway", blurb: "Credenciais e webhook do provedor de pagamento." },
+    { test: "/payment-gateway/show", eyebrow: "Gateways", title: "Editar gateway", blurb: "Atualização e exclusão do gateway." },
+    { test: "/payment-gateways", eyebrow: "Acesso", title: "Gateways", blurb: "Gateways usados na cobrança de planos e vouchers." },
     { test: "/order/checkout", eyebrow: "Pedidos", title: "Checkout", blurb: "Cria um pedido pendente com plano e gateway." },
     { test: "/order/status", eyebrow: "Pedidos", title: "Consultar pedido", blurb: "Status público e sync do pagamento pelo número do pedido." },
     { test: "/order/show", eyebrow: "Pedidos", title: "Pedido", blurb: "Detalhes, cancelamento, sync no Mercado Pago e provisionamento." },
@@ -71,6 +71,8 @@ function chromeFor(pathname: string | null) {
     { test: "/client/login", eyebrow: "Acesso", title: "Login do cliente", blurb: "Autentica um cliente já cadastrado em um hotspot." },
     { test: "/client/show", eyebrow: "Acesso", title: "Cliente", blurb: "Atualização e exclusão do cadastro de acesso." },
     { test: "/device/insert", eyebrow: "Acesso", title: "Dispositivo", blurb: "Registro do aparelho a partir do CPF do cliente." },
+    { test: "/device/show", eyebrow: "Acesso", title: "Dispositivo", blurb: "Detalhes do aparelho registrado." },
+    { test: "/connection-log/show", eyebrow: "Acesso", title: "Log de conexão", blurb: "Detalhes de uma conexão no hotspot." },
     { test: "/devices", eyebrow: "Acesso", title: "Dispositivos", blurb: "Aparelhos registrados e logs de conexão." },
     { test: "/user/insert", eyebrow: "Equipe", title: "Novo usuário", blurb: "Usuário com acesso a este painel." },
     { test: "/user/show", eyebrow: "Equipe", title: "Editar usuário", blurb: "Nome, permissão, status e provedor desta conta." },
@@ -88,7 +90,7 @@ function chromeFor(pathname: string | null) {
 }
 
 function isActive(href: string, pathname: string) {
-  if (pathname.startsWith("/device")) return href === "/devices";
+  if (pathname.startsWith("/device") || pathname.startsWith("/connection-log")) return href === "/devices";
   if (pathname.includes("/hotspot")) return href === "/hotspots";
   if (href === "/providers") return pathname.startsWith("/provider") && !pathname.includes("/hotspot");
   if (href === "/plans") return pathname.startsWith("/plan");

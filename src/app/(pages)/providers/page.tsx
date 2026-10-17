@@ -3,8 +3,8 @@
 import { getAllProviders } from "@/actions/get-all-provideres";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { RowActionsMenu } from "@/app/components/_ui/resource/RowActionsMenu";
 import IProvider from "@/app/interface/IProviders";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -72,10 +72,12 @@ const ProvidersPage = () => {
             header: "Ações",
             align: "right",
             render: (row) => (
-              <div className="row-links">
-                <Link href={`/provider/hotspots/${row.id}`}>Hotspots</Link>
-                <Link href={`/provider/show/${row.id}`}>Editar</Link>
-              </div>
+              <RowActionsMenu
+                items={[
+                  { key: "hotspots", label: "Hotspots", href: `/provider/hotspots/${row.id}` },
+                  { key: "editar", label: "Editar", href: `/provider/show/${row.id}` },
+                ]}
+              />
             ),
           },
         ]}
