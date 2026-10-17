@@ -77,8 +77,12 @@ const PaymentGatewaysPage = () => {
               </>
             ),
           },
-          { key: "isp", header: "ISP", render: (row) => row.isp?.nome || "—" },
-          { key: "hotspot", header: "Hotspot", render: (row) => row.hotspot?.nome || "ISP inteiro" },
+          { key: "isp", header: "ISP", render: (row) => row.isp?.nome || "Global" },
+          {
+            key: "hotspot",
+            header: "Hotspot",
+            render: (row) => row.hotspot?.nome || (row.isp?.nome ? "ISP inteiro" : "Global"),
+          },
           { key: "ambiente", header: "Ambiente", render: (row) => (row.sandbox ? "Sandbox" : "Produção") },
           { key: "status", header: "Status", render: (row) => <StatusPill value={row.status} /> },
           {

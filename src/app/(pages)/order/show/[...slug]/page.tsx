@@ -1,15 +1,31 @@
 "use client";
 
-import { getOrder, simulatePayment } from "@/actions/orders";
+import { cancelPayment, getOrder, retryProvision, simulatePayment, syncPayment } from "@/actions/orders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import {
+  isClosedOrderStatus,
+  isMercadoPago,
+  normalizeOrderStatus,
+  paymentStatusLabel,
+  provisionLabel,
+} from "@/app/lib/order-payment";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+
+type OrderMetadata = {
+  voucher_code?: string;
+  mikrotik_provisioned?: boolean;
+  mikrotik_error?: string | null;
+  credentials?: { username?: string; password?: string; profile?: string } | null;
+};
 
 type OrderRecord = {
   id?: number;
   order_number?: string;
   status?: string;
+  payment_status?: string;
+  payment_status_label?: string;
   value?: string | number;
   currency?: string;
   payment_method?: string;
@@ -18,7 +34,8 @@ type OrderRecord = {
   checkout_url?: string;
   paid_at?: string;
   created_at?: string;
-  metadata?: { voucher_code?: string } | null;
+  hsID?: number | null;
+  metadata?: OrderMetadata | null;
   plan?: { id?: number; name?: string; price?: number };
   gateway?: { id?: number; name?: string; provider?: string; sandbox?: boolean };
   hotspot?: { id?: number; nome?: string };
@@ -54,7 +71,8 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const [missing, setMissing] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
-  const [simulating, setSimulating] = useState(false);
+  const [pending, setPending] = useState<"simulate" | "cancel" | "sync" | "retry" | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   const load = async () => {
     const response = await getOrder(id);
@@ -70,20 +88,26 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
     load();
   }, [id]);
 
-  const handleSimulate = async () => {
+  const runAction = async (
+    kind: "simulate" | "cancel" | "sync" | "retry",
+    action: (orderNumber: string) => Promise<{ status: number; data: unknown }>,
+    successFallback: string,
+    errorFallback: string,
+  ) => {
     if (!order?.order_number) return;
-    setSimulating(true);
+    setPending(kind);
     setError("");
     setInfo("");
-    const response = await simulatePayment(order.order_number);
+    const response = await action(order.order_number);
     if (response.status >= 200 && response.status < 300) {
-      setInfo(messageFrom(response.data, "Pagamento simulado com sucesso."));
+      setInfo(messageFrom(response.data, successFallback));
+      setConfirmCancel(false);
       await load();
-      setSimulating(false);
+      setPending(null);
       return;
     }
-    setError(messageFrom(response.data, "Não foi possível simular o pagamento."));
-    setSimulating(false);
+    setError(messageFrom(response.data, errorFallback));
+    setPending(null);
   };
 
   if (missing) {
@@ -102,13 +126,16 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
     );
   }
 
-  const voucherCode = order.metadata && typeof order.metadata === "object"
-    ? order.metadata.voucher_code
-    : undefined;
-  const canSimulate = order.gateway?.sandbox !== false
-    && String(order.status || "").toLowerCase() !== "paid"
-    && String(order.status || "").toLowerCase() !== "pago"
-    && String(order.status || "").toLowerCase() !== "approved";
+  const status = normalizeOrderStatus(order.status);
+  const closed = isClosedOrderStatus(status);
+  const meta = order.metadata && typeof order.metadata === "object" ? order.metadata : null;
+  const voucherCode = meta?.voucher_code || meta?.credentials?.username;
+  const canSimulate = order.gateway?.sandbox !== false && status === "pendente";
+  const canSync = isMercadoPago(order.gateway?.provider) && !closed;
+  const canRetry = status === "ativo" && Boolean(order.hotspot?.id || order.hsID) && meta?.mikrotik_provisioned !== true;
+  const canCancel = !closed;
+  const busy = pending !== null;
+  const payLabel = paymentStatusLabel(order.payment_status, order.payment_status_label, order.status);
 
   return (
     <SideBar>
@@ -120,6 +147,10 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
         <div className="fact">
           <span>Status</span>
           <strong><StatusPill value={order.status} /></strong>
+        </div>
+        <div className="fact">
+          <span>Pagamento</span>
+          <strong><StatusPill value={payLabel} /></strong>
         </div>
         <div className="fact">
           <span>Valor</span>
@@ -153,6 +184,14 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
           <strong>{voucherCode || "—"}</strong>
         </div>
         <div className="fact">
+          <span>MikroTik</span>
+          <strong>{provisionLabel({ ...meta, status: order.status })}</strong>
+        </div>
+        <div className="fact">
+          <span>Erro de provisionamento</span>
+          <strong>{meta?.mikrotik_error || "—"}</strong>
+        </div>
+        <div className="fact">
           <span>Checkout</span>
           <strong>
             {order.checkout_url ? (
@@ -164,6 +203,22 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
 
       {error ? <p className="error-message">{error}</p> : null}
       {info ? <p className="edit-note">{info}</p> : null}
+      {confirmCancel ? (
+        <div className="confirm-reboot">
+          <p>Cancelar este pedido. Se já estiver pago, o voucher e o acesso no MikroTik são revogados.</p>
+          <div className="toolbar-actions">
+            <button type="button" className="btn" onClick={() => setConfirmCancel(false)} disabled={busy}>Voltar</button>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={() => runAction("cancel", cancelPayment, "Pedido cancelado.", "Não foi possível cancelar o pedido.")}
+              disabled={busy}
+            >
+              {pending === "cancel" ? "Cancelando..." : "Confirmar cancelamento"}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="form-actions" style={{ marginTop: 16, display: "flex", gap: 12, flexWrap: "wrap" }}>
         <button type="button" className="btn" onClick={() => router.push("/orders")}>Voltar</button>
@@ -171,10 +226,35 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
           <button
             type="button"
             className="btn btn--solid"
-            onClick={handleSimulate}
-            disabled={simulating}
+            onClick={() => runAction("simulate", simulatePayment, "Pagamento simulado com sucesso.", "Não foi possível simular o pagamento.")}
+            disabled={busy}
           >
-            {simulating ? "Simulando..." : "Simular pagamento (sandbox)"}
+            {pending === "simulate" ? "Simulando..." : "Simular pagamento (sandbox)"}
+          </button>
+        ) : null}
+        {canSync ? (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => runAction("sync", syncPayment, "Pagamento sincronizado.", "Não foi possível sincronizar o pagamento.")}
+            disabled={busy}
+          >
+            {pending === "sync" ? "Sincronizando..." : "Sincronizar Mercado Pago"}
+          </button>
+        ) : null}
+        {canRetry ? (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => runAction("retry", retryProvision, "Provisionamento concluído.", "Não foi possível provisionar no MikroTik.")}
+            disabled={busy}
+          >
+            {pending === "retry" ? "Provisionando..." : "Tentar provisionamento"}
+          </button>
+        ) : null}
+        {canCancel && !confirmCancel ? (
+          <button type="button" className="btn btn--danger" onClick={() => setConfirmCancel(true)} disabled={busy}>
+            Cancelar pedido
           </button>
         ) : null}
       </div>

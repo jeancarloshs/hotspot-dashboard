@@ -5,6 +5,7 @@ import { getAllHotspots } from "@/actions/get-all-hotspots";
 import { getAllPlans } from "@/actions/plans";
 import { checkoutPayment, getPublicPaymentGateways } from "@/actions/orders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
+import { PAYMENT_METHODS } from "@/app/components/_ui/payment/GatewayFields";
 import { asList } from "@/app/components/_ui/resource/ResourceTable";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -43,7 +44,7 @@ const CheckoutPage = () => {
   const [gatewayID, setGatewayID] = useState("");
   const [hsID, setHsID] = useState("");
   const [userID, setUserID] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<string>(PAYMENT_METHODS[0].value);
 
   useEffect(() => {
     const load = async () => {
@@ -79,7 +80,7 @@ const CheckoutPage = () => {
       gatewayID: Number(gatewayID),
       hsID: hsID ? Number(hsID) : null,
       userID: userID ? Number(userID) : null,
-      payment_method: paymentMethod || undefined,
+      payment_method: paymentMethod && paymentMethod !== "all" ? paymentMethod : undefined,
     });
     if (response.status === 201 || response.status === 200) {
       const orderId = unwrapOrderId(response.data);
@@ -154,11 +155,17 @@ const CheckoutPage = () => {
 
           <label>
             Método de pagamento
-            <input
+            <select
               value={paymentMethod}
               onChange={(event) => setPaymentMethod(event.target.value)}
-              placeholder="pix, cartao..."
-            />
+              required
+            >
+              {PAYMENT_METHODS.map((method) => (
+                <option key={method.value} value={method.value}>
+                  {method.label}
+                </option>
+              ))}
+            </select>
           </label>
 
           {error ? <p className="error-message form-full">{error}</p> : null}

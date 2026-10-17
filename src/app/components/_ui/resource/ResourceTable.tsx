@@ -25,12 +25,18 @@ function statusTone(value: string) {
     normalized === "offline" ||
     normalized === "inactive" ||
     normalized === "disabled" ||
-    normalized === "desativado"
+    normalized === "desativado" ||
+    normalized === "expirado" ||
+    normalized === "deletado"
   ) {
     return "idle";
   }
   if (
     normalized === "ativo" ||
+    normalized === "usado" ||
+    normalized === "concluida" ||
+    normalized.includes("concluído") ||
+    normalized.includes("concluido") ||
     normalized.startsWith("ativ") ||
     normalized === "online" ||
     normalized === "active" ||
@@ -40,10 +46,24 @@ function statusTone(value: string) {
   ) {
     return "ok";
   }
-  if (normalized.includes("bloq") || normalized.includes("cancel") || normalized.includes("rejeit")) {
+  if (
+    normalized.includes("bloq") ||
+    normalized.includes("cancel") ||
+    normalized.includes("rejeit") ||
+    normalized === "nao_concluida" ||
+    normalized.includes("não concluído") ||
+    normalized.includes("nao concluido")
+  ) {
     return "bad";
   }
-  if (normalized.includes("pend")) return "wait";
+  if (
+    normalized.includes("pend") ||
+    normalized === "em_aberto" ||
+    normalized.includes("em aberto") ||
+    normalized.includes("aguardando")
+  ) {
+    return "wait";
+  }
   return "neutral";
 }
 

@@ -35,7 +35,8 @@ const NAV = [
   { href: "/users", label: "Usuários", icon: MdAdminPanelSettings },
 ];
 
-function chromeFor(pathname: string) {
+function chromeFor(pathname: string | null) {
+  const path = pathname || "";
   const rules = [
     { test: "/provider/hotspot/insert", eyebrow: "Hotspots", title: "Novo hotspot", blurb: "Cadastro de um ponto de acesso ligado a um provedor." },
     { test: "/provider/hotspot/cadastro", eyebrow: "Hotspots", title: "Cadastro do hotspot", blurb: "Atualização e exclusão do ponto de acesso." },
@@ -52,8 +53,8 @@ function chromeFor(pathname: string) {
     { test: "/payment-gateway/show", eyebrow: "Pagamentos", title: "Editar gateway", blurb: "Atualização e exclusão do gateway." },
     { test: "/payment-gateways", eyebrow: "Acesso", title: "Pagamentos", blurb: "Gateways usados na cobrança de planos e vouchers." },
     { test: "/order/checkout", eyebrow: "Pedidos", title: "Checkout", blurb: "Cria um pedido pendente com plano e gateway." },
-    { test: "/order/status", eyebrow: "Pedidos", title: "Consultar pedido", blurb: "Status público pelo número do pedido." },
-    { test: "/order/show", eyebrow: "Pedidos", title: "Pedido", blurb: "Detalhes, voucher e simulação sandbox." },
+    { test: "/order/status", eyebrow: "Pedidos", title: "Consultar pedido", blurb: "Status público e sync do pagamento pelo número do pedido." },
+    { test: "/order/show", eyebrow: "Pedidos", title: "Pedido", blurb: "Detalhes, cancelamento, sync no Mercado Pago e provisionamento." },
     { test: "/orders", eyebrow: "Acesso", title: "Pedidos", blurb: "Pedidos de pagamento e emissão de vouchers." },
     { test: "/provider/hotspots", eyebrow: "Provedores", title: "Hotspots do provedor", blurb: "Pontos de acesso vinculados a este provedor." },
     { test: "/provider/insert", eyebrow: "Provedores", title: "Novo provedor", blurb: "Nome, documento e endereço do provedor." },
@@ -74,7 +75,7 @@ function chromeFor(pathname: string) {
   ];
 
   return (
-    rules.find((rule) => pathname === rule.test || pathname.startsWith(`${rule.test}/`)) ?? {
+    rules.find((rule) => path === rule.test || path.startsWith(`${rule.test}/`)) ?? {
       eyebrow: "Hotspot",
       title: "Painel",
       blurb: "Gestão de hotspots MikroTik.",
@@ -167,9 +168,9 @@ const SideBar = ({ children }: SideBarProps) => {
       <div className="app-main">
         <header className="app-topbar">
           <div>
-            <p className="eyebrow">{chrome.eyebrow}</p>
-            <h1>{chrome.title}</h1>
-            <p>{chrome.blurb}</p>
+            <p className="eyebrow" suppressHydrationWarning>{chrome.eyebrow}</p>
+            <h1 suppressHydrationWarning>{chrome.title}</h1>
+            <p suppressHydrationWarning>{chrome.blurb}</p>
           </div>
           <p className="topbar-date" suppressHydrationWarning>
             {today}

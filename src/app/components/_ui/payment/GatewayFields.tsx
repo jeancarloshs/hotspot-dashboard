@@ -13,6 +13,16 @@ export const GATEWAY_PROVIDERS = [
 
 export const GATEWAY_STATUSES = ["ativo", "inativo", "bloqueado", "pendente", "rejeitado", "cancelado"];
 
+/** Meios de cobrança enviados no checkout (API restringe no Mercado Pago). */
+export const PAYMENT_METHODS = [
+  { value: "all", label: "Todos (padrão do gateway)" },
+  { value: "pix", label: "PIX" },
+  { value: "credit_card", label: "Cartão de crédito" },
+  { value: "debit_card", label: "Cartão de débito" },
+  { value: "boleto", label: "Boleto" },
+  { value: "account_money", label: "Saldo Mercado Pago" },
+] as const;
+
 export type GatewayForm = {
   name: string;
   provider: string;
@@ -96,8 +106,14 @@ export function GatewayFields({
       <h2 className="form-span">Escopo</h2>
       <label>
         ISP
-        <select value={form.ispID} onChange={(event) => onChange("ispID", event.target.value)}>
-          <option value="">Opcional</option>
+        <select
+          value={form.ispID}
+          onChange={(event) => {
+            onChange("ispID", event.target.value);
+            if (!event.target.value) onChange("hsID", "");
+          }}
+        >
+          <option value="">Global (todos os ISPs)</option>
           {providers.map((provider) => (
             <option key={provider.id} value={provider.id}>{provider.nome}</option>
           ))}
@@ -106,7 +122,7 @@ export function GatewayFields({
       <label>
         Hotspot
         <select value={form.hsID} onChange={(event) => onChange("hsID", event.target.value)}>
-          <option value="">Todo o ISP</option>
+          <option value="">{form.ispID ? "Todo o ISP" : "Global"}</option>
           {filteredHotspots.map((hotspot) => (
             <option key={hotspot.id} value={hotspot.id}>{hotspot.nome}</option>
           ))}

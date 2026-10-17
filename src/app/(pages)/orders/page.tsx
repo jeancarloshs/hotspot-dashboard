@@ -4,6 +4,7 @@ import { getAllHotspots } from "@/actions/get-all-hotspots";
 import { getAllOrders } from "@/actions/orders";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable, StatusPill } from "@/app/components/_ui/resource/ResourceTable";
+import { ORDER_FILTER_STATUSES, paymentStatusLabel } from "@/app/lib/order-payment";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -12,6 +13,8 @@ type OrderRow = {
   id?: number;
   order_number?: string;
   status?: string;
+  payment_status?: string;
+  payment_status_label?: string;
   value?: string | number;
   currency?: string;
   payment_method?: string;
@@ -21,8 +24,6 @@ type OrderRow = {
   gateway?: { name?: string; provider?: string; sandbox?: boolean };
   hotspot?: { nome?: string };
 };
-
-const STATUSES = ["", "pending", "paid", "approved", "cancelled", "failed", "refunded", "pendente", "pago", "cancelado"];
 
 function money(value?: string | number, currency = "BRL") {
   const amount = typeof value === "number" ? value : Number(value);
@@ -60,6 +61,8 @@ const OrdersPage = () => {
       [
         order.order_number,
         order.status,
+        order.payment_status,
+        order.payment_status_label,
         order.payment_method,
         order.plan?.name,
         order.gateway?.name,
@@ -96,7 +99,7 @@ const OrdersPage = () => {
         <label>
           Status
           <select value={status} onChange={(event) => setStatus(event.target.value)}>
-            {STATUSES.map((item) => (
+            {ORDER_FILTER_STATUSES.map((item) => (
               <option key={item || "all"} value={item}>{item || "Todos"}</option>
             ))}
           </select>
@@ -145,7 +148,14 @@ const OrdersPage = () => {
           {
             key: "status",
             header: "Status",
-            render: (row) => <StatusPill value={row.status} />,
+            render: (row) => (
+              <>
+                <StatusPill value={row.status} />
+                <span className="cell-sub">
+                  {paymentStatusLabel(row.payment_status, row.payment_status_label, row.status)}
+                </span>
+              </>
+            ),
           },
           {
             key: "acoes",

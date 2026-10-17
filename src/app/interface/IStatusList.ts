@@ -35,15 +35,24 @@ export enum ServiceStatus {
     cancelado, // Serviço cancelado permanentemente
 }
 
-//Define os status para transações financeiras.
-export enum FinancialStatus {
-    pago, // Pagamento realizado com sucesso
-    pendente, // Pagamento pendente
-    atrasado, // Pagamento atrasado
-    cancelado, // Pagamento cancelado
-    reembolsado, // Pagamento reembolsado
-    em_disputa, // Pagamento em disputa (chargeback)
-    falha, // Falha no processamento do pagamento
+// Status de pagamento público (API: payment_status).
+export enum PaymentOutcomeStatus {
+    em_aberto, // Pedido aguardando pagamento
+    concluida, // Pagamento confirmado (pedido ativo/usado)
+    nao_concluida, // Cancelado, rejeitado, expirado etc.
+}
+
+// Status de entidade do pedido de pagamento (API: status).
+export enum OrderPaymentStatus {
+    pendente, // Aguardando pagamento
+    ativo, // Pago; voucher emitido
+    usado, // Pago e provisionado / voucher usado
+    cancelado, // Cancelado ou estornado
+    rejeitado, // Rejeitado pelo gateway
+    expirado, // Expirado
+    bloqueado,
+    inativo,
+    deletado,
 }
 
 // Define os status para clientes.

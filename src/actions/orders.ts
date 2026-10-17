@@ -72,6 +72,28 @@ export async function simulatePayment(orderNumber: string) {
   });
 }
 
+export async function cancelPayment(orderNumber: string) {
+  return apiRequest({
+    path: `/payments/cancel/${encodeURIComponent(orderNumber)}`,
+    method: "POST",
+  });
+}
+
+export async function syncPayment(orderNumber: string) {
+  return apiRequest({
+    path: `/payments/sync/${encodeURIComponent(orderNumber)}`,
+    method: "POST",
+    auth: false,
+  });
+}
+
+export async function retryProvision(orderNumber: string) {
+  return apiRequest({
+    path: `/payments/retry-provision/${encodeURIComponent(orderNumber)}`,
+    method: "POST",
+  });
+}
+
 export async function postPaymentWebhook(
   provider: string,
   data: WebhookInput,
