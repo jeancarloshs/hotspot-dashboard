@@ -7,8 +7,8 @@ import { updateUser } from "@/actions/update-user";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList } from "@/app/components/_ui/resource/ResourceTable";
 import { useAcl } from "@/app/hooks/use-acl";
+import { useApiFeedback } from "@/app/hooks/use-api-feedback";
 import IProvider from "@/app/interface/IProviders";
-import { messageFrom } from "@/app/lib/message";
 import {
   PERMISSION_HINTS,
   PERMISSIONS,
@@ -31,6 +31,7 @@ type SystemUser = {
 const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const router = useRouter();
   const { permission: actorPermission, can } = useAcl();
+  const { error, fromResponse, clearError } = useApiFeedback();
   const id = React.use(params).slug[0];
   const [ready, setReady] = useState(false);
   const options = useMemo(
@@ -41,7 +42,6 @@ const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [error, setError] = useState("");
   const [providers, setProviders] = useState<IProvider[]>([]);
   const [form, setForm] = useState({
     name: "",
@@ -86,7 +86,7 @@ const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
-    setError("");
+    clearError();
     const response = await updateUser(id, {
       name: form.name,
       email: form.email,
@@ -99,19 +99,19 @@ const UserShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
       router.push("/users");
       return;
     }
-    setError(messageFrom(response.data, "Não foi possível atualizar o usuário."));
+    fromResponse(response.status, response.data, "Não foi possível atualizar o usuário.");
     setSaving(false);
   };
 
   const handleDelete = async () => {
     setDeleting(true);
-    setError("");
+    clearError();
     const response = await deleteUser(id);
     if (response.status === 200) {
       router.push("/users");
       return;
     }
-    setError(messageFrom(response.data, "Não foi possível excluir o usuário."));
+    fromResponse(response.status, response.data, "Não foi possível excluir o usuário.");
     setDeleting(false);
   };
 

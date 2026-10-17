@@ -1,6 +1,6 @@
 "use server";
 
-import { apiRequest } from "@/actions/api-request";
+import { apiRequest, type ApiResult } from "@/actions/api-request";
 
 export async function getAllDevices(limit = 100) {
   const response = await apiRequest({
@@ -10,12 +10,11 @@ export async function getAllDevices(limit = 100) {
   return response.status >= 200 && response.status < 300 ? response.data : null;
 }
 
-export async function getDevice(id: string | number) {
-  const response = await apiRequest({
+export async function getDevice(id: string | number): Promise<ApiResult> {
+  return apiRequest({
     path: `/device/${id}`,
     method: "GET",
   });
-  return response.status >= 200 && response.status < 300 ? response.data : null;
 }
 
 export async function getConnectionLogs(filters?: { hsID?: number; limit?: number }) {
@@ -30,10 +29,9 @@ export async function getConnectionLogs(filters?: { hsID?: number; limit?: numbe
   return response.status >= 200 && response.status < 300 ? response.data : null;
 }
 
-export async function getConnectionLog(id: string | number) {
-  const response = await apiRequest({
+export async function getConnectionLog(id: string | number): Promise<ApiResult> {
+  return apiRequest({
     path: `/connection-log/${id}`,
     method: "GET",
   });
-  return response.status >= 200 && response.status < 300 ? response.data : null;
 }

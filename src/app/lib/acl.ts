@@ -119,6 +119,7 @@ export const ROUTE_ACL: { prefix: string; actions: AclAction[] }[] = [
   { prefix: "/client", actions: ["clients.read"] },
   { prefix: "/devices", actions: ["devices.read"] },
   { prefix: "/device", actions: ["devices.read"] },
+  { prefix: "/connection-log", actions: ["connection_logs.read"] },
   { prefix: "/home", actions: ["hotspots.read", "clients.read", "orders.read"] },
 ];
 

@@ -3,6 +3,7 @@
 import { getAllDevices, getConnectionLogs } from "@/actions/devices";
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { asList, ResourceTable } from "@/app/components/_ui/resource/ResourceTable";
+import { useApiFeedback } from "@/app/hooks/use-api-feedback";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -35,6 +36,7 @@ type LogRow = {
 
 const DevicesPage = () => {
   const router = useRouter();
+  const { error, clearError } = useApiFeedback();
   const [devices, setDevices] = useState<DeviceRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [query, setQuery] = useState("");
@@ -42,6 +44,7 @@ const DevicesPage = () => {
 
   useEffect(() => {
     const load = async () => {
+      clearError();
       const [deviceResponse, logResponse] = await Promise.all([
         getAllDevices(100),
         getConnectionLogs({ limit: 100 }),
@@ -50,7 +53,7 @@ const DevicesPage = () => {
       setLogs(asList<LogRow>(logResponse));
     };
     load();
-  }, []);
+  }, [clearError]);
 
   const visibleDevices = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -113,6 +116,8 @@ const DevicesPage = () => {
         </div>
       </div>
 
+      {error ? <p className="error-message">{error}</p> : null}
+
       {tab === "devices" ? (
         <ResourceTable
           rows={visibleDevices}
@@ -146,7 +151,16 @@ const DevicesPage = () => {
               key: "criado",
               header: "Criado",
               render: (row) => (row.created_at ? new Date(row.created_at).toLocaleString("pt-BR") : "—"),
+            },
+            {
+              key: "acoes",
+              header: "Ações",
               align: "right",
+              render: (row) => (
+                <div className="row-links">
+                  {row.id != null ? <Link href={`/device/show/${row.id}`}>Abrir</Link> : null}
+                </div>
+              ),
             },
           ]}
         />
@@ -181,7 +195,16 @@ const DevicesPage = () => {
               key: "quando",
               header: "Quando",
               render: (row) => (row.created_at ? new Date(row.created_at).toLocaleString("pt-BR") : "—"),
+            },
+            {
+              key: "acoes",
+              header: "Ações",
               align: "right",
+              render: (row) => (
+                <div className="row-links">
+                  {row.id != null ? <Link href={`/connection-log/show/${row.id}`}>Abrir</Link> : null}
+                </div>
+              ),
             },
           ]}
         />

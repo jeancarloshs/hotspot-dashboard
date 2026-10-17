@@ -4,6 +4,7 @@ import { cancelPayment, getOrder, retryProvision, simulatePayment, syncPayment }
 import SideBar from "@/app/components/_ui/sidebar/Sidebar";
 import { StatusPill } from "@/app/components/_ui/resource/ResourceTable";
 import { useAcl } from "@/app/hooks/use-acl";
+import { useApiFeedback } from "@/app/hooks/use-api-feedback";
 import {
   isClosedOrderStatus,
   isMercadoPago,
@@ -11,6 +12,7 @@ import {
   paymentStatusLabel,
   provisionLabel,
 } from "@/app/lib/order-payment";
+import { messageFrom } from "@/app/lib/message";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -42,12 +44,6 @@ type OrderRecord = {
   hotspot?: { id?: number; nome?: string };
 };
 
-function messageFrom(data: unknown, fallback: string) {
-  if (typeof data === "string") return data;
-  if (data && typeof data === "object" && "message" in data && typeof data.message === "string") return data.message;
-  return fallback;
-}
-
 function unwrap(value: unknown): OrderRecord | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
@@ -68,10 +64,10 @@ function money(value?: string | number, currency = "BRL") {
 const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   const router = useRouter();
   const { can } = useAcl();
+  const { error, fromResponse, clearError } = useApiFeedback();
   const id = React.use(params).slug[0];
   const [order, setOrder] = useState<OrderRecord | null>(null);
   const [missing, setMissing] = useState(false);
-  const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [pending, setPending] = useState<"simulate" | "cancel" | "sync" | "retry" | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -98,17 +94,17 @@ const OrderShowPage = ({ params }: { params: Promise<{ slug: string[] }> }) => {
   ) => {
     if (!order?.order_number) return;
     setPending(kind);
-    setError("");
+    clearError();
     setInfo("");
     const response = await action(order.order_number);
     if (response.status >= 200 && response.status < 300) {
-      setInfo(messageFrom(response.data, successFallback));
+      setInfo(messageFrom(response.data, successFallback, response.status));
       setConfirmCancel(false);
       await load();
       setPending(null);
       return;
     }
-    setError(messageFrom(response.data, errorFallback));
+    fromResponse(response.status, response.data, errorFallback);
     setPending(null);
   };
 
