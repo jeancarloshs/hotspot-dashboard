@@ -32,9 +32,9 @@ const GROUPS: { label: string; tools: { id: MikrotikTool; label: string }[] }[] 
   {
     label: "Equipamento",
     tools: [
+      { id: "logs", label: "Logs" },
       { id: "resource", label: "Recursos" },
       { id: "health", label: "Saúde" },
-      { id: "logs", label: "Logs" },
     ],
   },
   {
