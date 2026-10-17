@@ -23,7 +23,7 @@ export const PANEL_PERMISSIONS = [
 export const PERMISSION_HINTS: Record<(typeof PERMISSIONS)[number], string> = {
   super_admin: "Tudo + multi-ISP",
   administrador: "Users, gateways, MK perigoso, deletes",
-  gerente: "Planos/hotspots write, relatórios, export, bootstrap",
+  gerente: "Planos/hotspots write, relatórios, export",
   moderador: "Gerar vouchers, editar clientes, retry provision",
   suporte: "Leitura operacional (clientes, pedidos, MK read)",
   usuario_premium: "Sem acesso ao painel",

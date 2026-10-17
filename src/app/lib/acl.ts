@@ -29,7 +29,6 @@ export const ACL_MIN_RANK = {
   "hotspots.read": PERMISSION_RANK.suporte,
   "hotspots.write": PERMISSION_RANK.gerente,
   "hotspots.delete": PERMISSION_RANK.administrador,
-  "hotspots.bootstrap": PERMISSION_RANK.gerente,
 
   "plans.read": PERMISSION_RANK.suporte,
   "plans.write": PERMISSION_RANK.gerente,
